@@ -75,6 +75,7 @@ class KegTile : public tessera::Tile {
       ui::set_text(unit_label_, plugin_->text("glasses"));
     }
     ui::set_text(glasses_label_, glasses_text);
+    empty_ = std::isfinite(count) && std::lround(count) <= 0;
 
     char volume_text[24];
     const float volume = volume_ == nullptr ? NAN : volume_->state;
@@ -176,24 +177,31 @@ class KegTile : public tessera::Tile {
 
   void on_theme() override {
     lv_obj_set_style_border_color(surface_, theme::color(theme::LINE), 0);
-    lv_obj_set_style_border_color(glass_, theme::color(theme::MUTED), 0);
-    lv_obj_set_style_bg_color(beer_, theme::color(theme::MARK_AMBER), 0);
-    for (lv_obj_t *foam : {foam_left_, foam_right_}) {
-      lv_obj_set_style_bg_color(foam, theme::color(theme::INK_SOFT), 0);
-    }
-    ui::set_color(title_, theme::MUTED);
-    ui::set_color(glasses_label_, theme::INK);
-    ui::set_color(unit_label_, theme::INK_SOFT);
-    ui::set_color(volume_label_, theme::INK_SOFT);
     apply_state_colors();
   }
 
  private:
   void apply_state_colors() {
-    const theme::Role surface_role =
-        pouring_ ? theme::ACCENT_TINT : (low_stock_ ? theme::AMBER_TRACK : theme::CARD);
+    const theme::Role surface_role = !empty_ && pouring_ ? theme::ACCENT_TINT
+                                      : !empty_ && low_stock_ ? theme::AMBER_TRACK
+                                                              : theme::CARD;
+    const theme::Role primary_text = empty_ ? theme::MUTED : theme::INK;
+    const theme::Role secondary_text = empty_ ? theme::SUBTLE : theme::INK_SOFT;
+    const theme::Role glass_outline = empty_ ? theme::SUBTLE : theme::MUTED;
+    const theme::Role beer_color = empty_ ? theme::TRACK : theme::MARK_AMBER;
     lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
-    ui::set_color(flow_label_, pouring_ ? theme::ACCENT : (low_stock_ ? theme::MARK_AMBER : theme::MUTED));
+    lv_obj_set_style_border_color(glass_, theme::color(glass_outline), 0);
+    lv_obj_set_style_bg_color(beer_, theme::color(beer_color), 0);
+    for (lv_obj_t *foam : {foam_left_, foam_right_}) {
+      lv_obj_set_style_bg_color(foam, theme::color(secondary_text), 0);
+    }
+    ui::set_color(title_, empty_ ? theme::SUBTLE : theme::MUTED);
+    ui::set_color(glasses_label_, primary_text);
+    ui::set_color(unit_label_, secondary_text);
+    ui::set_color(volume_label_, secondary_text);
+    ui::set_color(flow_label_, empty_ ? theme::SUBTLE
+                                     : pouring_ ? theme::ACCENT
+                                                : low_stock_ ? theme::MARK_AMBER : theme::MUTED);
   }
 
   const KegTap *plugin_;
@@ -201,6 +209,7 @@ class KegTile : public tessera::Tile {
   bool wide_ = false;
   bool pouring_ = false;
   bool low_stock_ = false;
+  bool empty_ = false;
   sensor::Sensor *volume_;
   sensor::Sensor *glasses_;
   sensor::Sensor *pour_rate_;

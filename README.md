@@ -3,7 +3,7 @@
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate.
 The wide 2x1 layout gives the glass count and volume/status their own columns. Pouring tints the tile pale blue;
-otherwise, five glasses or fewer tints it pale amber.
+otherwise, five glasses or fewer tints it pale amber. At zero glasses the tile dims to show the keg is empty.
 
 ## What you need
 
@@ -34,8 +34,9 @@ entities in the screen inputs if your Home Assistant IDs differ.
   behavior. The tile does not recalculate volume or glass counts.
 - The plugin reads the selected sensors through ESPHome's native Home Assistant sensor platforms. It does not
   reimplement keg calibration or scale actions; the existing Tessera select tile provides the control UI.
-- A live pour takes visual priority over low stock: pouring uses the theme's pale blue tint; at rest, five glasses or
-  fewer use pale amber. Other states use the normal card background.
+- An empty reading (zero or fewer glasses) dims the text and beer icon and takes priority over the other background
+  states. Otherwise, a live pour uses the theme's pale blue tint; at rest, five glasses or fewer use pale amber.
+  Other states use the normal card background.
 
 ## Development
 

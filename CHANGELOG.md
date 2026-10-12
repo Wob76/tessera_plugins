@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Dim the tile when no glasses remain, including while the flow sensor is still active.
+
 ## 0.3.0
 
 - Replace the stemmed glass with a beer pint icon featuring amber beer and foam.
