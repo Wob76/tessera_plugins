@@ -24,13 +24,8 @@ class KegTile : public tessera::Tile {
     height_ = context.height;
     wide_ = context.columns > 1;
 
-    surface_ = lv_obj_create(context.parent);
-    lv_obj_set_size(surface_, width_, height_);
-    lv_obj_set_style_radius(surface_, ui::px(14), 0);
+    surface_ = context.parent;
     lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_width(surface_, ui::px(1), 0);
-    lv_obj_set_style_pad_all(surface_, 0, 0);
-    lv_obj_clear_flag(surface_, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
 
     beer_ = lv_obj_create(context.parent);
     lv_obj_set_style_radius(beer_, ui::px(2), 0);
@@ -86,11 +81,11 @@ class KegTile : public tessera::Tile {
     }
     ui::set_text(volume_label_, volume_text);
 
-    pouring_ = flow_ != nullptr && flow_->state;
+    const float rate = pour_rate_ == nullptr ? NAN : pour_rate_->state;
+    pouring_ = (flow_ != nullptr && flow_->state) || (std::isfinite(rate) && rate > 0.25f);
     low_stock_ = std::isfinite(count) && std::lround(count) <= 5;
     if (pouring_) {
-      const float rate = pour_rate_ == nullptr ? NAN : pour_rate_->state;
-      if (std::isfinite(rate)) {
+      if (wide_ && std::isfinite(rate)) {
         char flow_text[32];
         std::snprintf(flow_text, sizeof(flow_text), "%s %.1f L/min", plugin_->text("pouring"), rate);
         ui::set_text(flow_label_, flow_text);
@@ -176,7 +171,6 @@ class KegTile : public tessera::Tile {
   }
 
   void on_theme() override {
-    lv_obj_set_style_border_color(surface_, theme::color(theme::LINE), 0);
     apply_state_colors();
   }
 

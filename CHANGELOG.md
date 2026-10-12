@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+- Apply state colors to the tile's actual drawing surface so the pastel backgrounds are visible.
+- Show pouring when either the flow binary sensor is on or the pour rate exceeds the flow threshold; keep the compact
+  status label short enough to fit.
+
 ## 0.3.1
 
 - Dim the tile when no glasses remain, including while the flow sensor is still active.

@@ -31,7 +31,8 @@ entities in the screen inputs if your Home Assistant IDs differ.
 - Home Assistant entities are read by ESPHome's native Home Assistant sensor platforms on the screen.
 - Tessera's plugin tile reads those sensor states and updates its labels once per second.
 - The flow binary sensor gates the pour-rate display, retaining the scale configuration's debounce and delayed-off
-  behavior. The tile does not recalculate volume or glass counts.
+  behavior. The displayed pour status also checks the configured pour-rate sensor as a fallback, so it still appears
+  if the binary sensor update is delayed or unavailable. The tile does not recalculate volume or glass counts.
 - The plugin reads the selected sensors through ESPHome's native Home Assistant sensor platforms. It does not
   reimplement keg calibration or scale actions; the existing Tessera select tile provides the control UI.
 - An empty reading (zero or fewer glasses) dims the text and beer icon and takes priority over the other background
