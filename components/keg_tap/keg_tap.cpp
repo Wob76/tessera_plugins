@@ -23,6 +23,7 @@ class KegTile : public tessera::Tile {
     width_ = context.width;
     height_ = context.height;
     wide_ = context.columns > 1;
+    tall_ = context.rows > 1;
 
     surface_ = context.parent;
     lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
@@ -96,7 +97,7 @@ class KegTile : public tessera::Tile {
       ui::set_text(flow_label_, plugin_->text("ready"));
     }
 
-    const Font count_font = height_ < ui::px(100) && !wide_ ? Font::HEADLINE : Font::VALUE;
+    const Font count_font = height_ < ui::px(100) && !wide_ && !tall_ ? Font::HEADLINE : Font::VALUE;
     ui::set_font(glasses_label_, count_font);
     const Font volume_font = wide_ ? Font::BODY_LARGE : Font::BODY;
     ui::set_font(volume_label_, volume_font);
@@ -146,6 +147,25 @@ class KegTile : public tessera::Tile {
       lv_obj_set_size(flow_label_, details_width, row_height);
       lv_obj_set_pos(flow_label_, details_x, details_y + volume_height + gap);
       lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_LEFT, 0);
+    } else if (tall_) {
+      const int count_width = ui::text_width(glasses_text, count_font);
+      const int group_width = std::min(width_ - pad * 2, count_width + gap + unit_width);
+      const int start_x = (width_ - group_width) / 2;
+      const int footer_y = height_ - pad - row_height;
+      const int content_top = pad + header_height + gap;
+      const int count_y = content_top + std::max(0, (footer_y - content_top - count_height - row_height) / 2);
+      const int footer_gap = ui::px(6);
+      const int footer_width = std::max(0, (width_ - pad * 2 - footer_gap) / 2);
+      lv_obj_set_size(glasses_label_, count_width, count_height);
+      lv_obj_set_pos(glasses_label_, start_x, count_y);
+      lv_obj_set_size(unit_label_, unit_width, row_height);
+      lv_obj_set_pos(unit_label_, start_x + count_width + gap, count_y + count_height - row_height);
+      lv_obj_set_size(volume_label_, footer_width, row_height);
+      lv_obj_set_pos(volume_label_, pad, footer_y);
+      lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_LEFT, 0);
+      lv_obj_set_size(flow_label_, footer_width, row_height);
+      lv_obj_set_pos(flow_label_, pad + footer_width + footer_gap, footer_y);
+      lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_RIGHT, 0);
     } else {
       const int count_width = ui::text_width(glasses_text, count_font);
       const int group_width = std::min(width_ - pad * 2, count_width + gap + unit_width);
@@ -201,6 +221,7 @@ class KegTile : public tessera::Tile {
   const KegTap *plugin_;
   bool keg2_;
   bool wide_ = false;
+  bool tall_ = false;
   bool pouring_ = false;
   bool low_stock_ = false;
   bool empty_ = false;

@@ -2,8 +2,9 @@
 
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate.
-The wide 2x1 layout gives the glass count and volume/status their own columns. Pouring tints the tile pale blue;
-otherwise, five glasses or fewer tints it pale amber. At zero glasses the tile dims to show the keg is empty.
+The wide 2x1 layout gives the glass count and volume/status their own columns. The tall 1x2 layout centers the count
+and places volume and status side by side along the bottom. Pouring tints the tile pale blue; otherwise, five glasses
+or fewer tints it pale amber. At zero glasses the tile dims to show the keg is empty.
 
 ## What you need
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- Support 1x2 and 2x2 placements with a tall-tile layout that uses the additional height.
+
 ## 0.3.2
 
 - Apply state colors to the tile's actual drawing surface so the pastel backgrounds are visible.

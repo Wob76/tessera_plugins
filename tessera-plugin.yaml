@@ -1,5 +1,5 @@
 id: keg_tap
-version: 0.3.2
+version: 0.3.3
 api: "0.8"
 icon: beer
 maintainer: Wob76
@@ -34,12 +34,12 @@ tiles:
   - id: keg1
     name: tile_keg1
     icon: beer
-    sizes: { min: 1x1, max: 2x1 }
+    sizes: { min: 1x1, max: 2x2 }
     memory: 900
     example: tile_keg1_example
   - id: keg2
     name: tile_keg2
     icon: beer
-    sizes: { min: 1x1, max: 2x1 }
+    sizes: { min: 1x1, max: 2x2 }
     memory: 900
     example: tile_keg2_example
