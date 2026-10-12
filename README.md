@@ -7,15 +7,19 @@ current pour status. While the keg's flow binary sensor is on, the tile also sho
 
 - A Tessera screen running Manager 0.4.87 or newer (plugin API 0.8).
 - Home Assistant sensors for each keg's remaining volume, remaining glasses, and pour rate, plus a binary flow sensor.
+- The existing Home Assistant Keg Actions select entities.
 - Volume in litres and pour rate in L/min, matching the units used by this plugin.
 
 ## Set up
 
 1. Add this plugin to a screen in Tessera. For a private test, use **Add with a link** with the GitHub repository URL
    after placing these files at that repository's root.
-2. In the plugin's screen inputs, select the four Home Assistant entities for each keg.
+2. In the plugin's screen inputs, select the four Home Assistant sensors for each keg.
 3. In Layout, add **Keg 1** and/or **Keg 2** from the Plugins group. They can each be used more than once.
 4. Choose a 1x1 tile for a compact view or 2x1 for more breathing room.
+5. To access keg controls, add the existing `select.keg_scales_keg_1_control_action` or
+   `select.keg_scales_keg_2_control_action` as a separate, native Home Assistant tile. Set its **On tap** behavior to
+   **Open control**. The plugin tiles are display-only and do not duplicate or invoke keg actions.
 
 The default entity IDs match the `keg_scales.yaml` configuration in the smart_kegerator project. Select different
 entities in the screen inputs if your Home Assistant IDs differ.
@@ -26,8 +30,8 @@ entities in the screen inputs if your Home Assistant IDs differ.
 - Tessera's plugin tile reads those sensor states and updates its labels once per second.
 - The flow binary sensor gates the pour-rate display, retaining the scale configuration's debounce and delayed-off
   behavior. The tile does not recalculate volume or glass counts.
-- The plugin declares only `read_entities` permission. It does not make network requests or call Home Assistant
-  services.
+- The plugin reads the selected sensors through ESPHome's native Home Assistant sensor platforms. It does not
+  reimplement keg calibration or scale actions; the existing Tessera select tile provides the control UI.
 
 ## Development
 
