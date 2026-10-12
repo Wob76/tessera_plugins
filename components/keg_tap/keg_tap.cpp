@@ -1,15 +1,21 @@
 #include "keg_tap.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdio>
+#include <string>
+
+#include "esphome/core/log.h"
 
 namespace esphome::keg_tap {
 
+static const char *const TAG = "keg_tap";
 using tessera::Font;
 namespace ui = tessera::ui;
 
 constexpr uint32_t FRIDGE_ICON = 0xF0290;
+constexpr uint32_t CHECK_ICON = 0xF012C;
 
 class KegTile : public tessera::Tile {
  public:
@@ -26,6 +32,11 @@ class KegTile : public tessera::Tile {
     height_ = context.height;
     wide_ = context.columns > 1;
     tall_ = context.rows > 1;
+    tile_ = context.tile;
+    const char *action_entity =
+        context.options["action_entity"] |
+        (keg2_ ? "select.keg_scales_keg_2_control_action" : "select.keg_scales_keg_1_control_action");
+    action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
 
@@ -154,6 +165,11 @@ class KegTile : public tessera::Tile {
     apply_state_colors();
   }
 
+  void on_tap() override {
+    tessera::open_card(plugin_->plugin_id(), "actions", action_entity_, tile_,
+                       plugin_->text(keg2_ ? "keg_2_actions" : "keg_1_actions"));
+  }
+
   void on_theme() override {
     apply_state_colors();
   }
@@ -197,6 +213,8 @@ class KegTile : public tessera::Tile {
   sensor::Sensor *glasses_;
   sensor::Sensor *pour_rate_;
   binary_sensor::BinarySensor *flow_;
+  std::string action_entity_;
+  int tile_ = -1;
   int width_ = 0;
   int height_ = 0;
   lv_obj_t *surface_{};
@@ -209,9 +227,132 @@ class KegTile : public tessera::Tile {
   lv_obj_t *flow_label_{};
 };
 
+class KegActionsCard : public tessera::Card {
+ public:
+  explicit KegActionsCard(const KegTap *plugin) : plugin_(plugin) {}
+
+  void open(const tessera::CardContext &context) override {
+    entity_ = context.entity;
+    current_ = "Idle";
+
+    const int margin = ui::px(16);
+    const int inset = ui::px(6);
+    const int gap = ui::px(4);
+    const int available_height = std::max(ui::px(1), context.height - margin * 2);
+    const int row_height = std::max(
+        ui::px(1), std::min(ui::px(48), (available_height - inset * 2 - (OPTION_COUNT - 1) * gap) / OPTION_COUNT));
+    const int panel_width = std::max(ui::px(1), std::min(context.width - margin * 2, ui::px(440)));
+    const int panel_height = inset * 2 + OPTION_COUNT * row_height + (OPTION_COUNT - 1) * gap;
+    const int panel_x = (context.width - panel_width) / 2;
+    const int panel_y = std::max(ui::px(8), (context.height - panel_height) / 2);
+
+    panel_ = ui::block(context.parent, theme::CARD);
+    lv_obj_set_size(panel_, panel_width, panel_height);
+    lv_obj_set_pos(panel_, panel_x, panel_y);
+    lv_obj_set_style_radius(panel_, ui::px(14), 0);
+
+    for (size_t i = 0; i < OPTION_COUNT; ++i) {
+      lv_obj_t *row = ui::block(panel_, theme::CARD);
+      lv_obj_set_size(row, panel_width - inset * 2, row_height);
+      lv_obj_set_pos(row, inset, inset + static_cast<int>(i) * (row_height + gap));
+      lv_obj_set_style_radius(row, ui::px(8), 0);
+      lv_obj_add_flag(row, LV_OBJ_FLAG_CLICKABLE);
+
+      lv_obj_t *label = ui::label(row, Font::BODY_LARGE, theme::INK);
+      ui::set_text(label, plugin_->text(OPTIONS[i].label));
+      const int label_height = ui::line_height(Font::BODY_LARGE);
+      const int side = ui::px(12);
+      lv_obj_set_size(label, panel_width - inset * 2 - side * 2, label_height);
+      lv_obj_set_pos(label, side, (row_height - label_height) / 2);
+      lv_obj_remove_flag(label, LV_OBJ_FLAG_CLICKABLE);
+
+      lv_obj_t *check = ui::label(row, Font::ICON_SMALL, theme::ACCENT);
+      ui::set_text(check, ui::icon(CHECK_ICON));
+      const int check_width = ui::text_width(ui::icon(CHECK_ICON), Font::ICON_SMALL);
+      const int check_height = ui::line_height(Font::ICON_SMALL);
+      lv_obj_set_size(check, check_width, check_height);
+      lv_obj_set_pos(check, panel_width - inset * 2 - side - check_width, (row_height - check_height) / 2);
+      lv_obj_remove_flag(check, LV_OBJ_FLAG_CLICKABLE);
+
+      rows_[i] = row;
+      checks_[i] = check;
+      row_contexts_[i] = {this, i};
+      lv_obj_add_event_cb(
+          row,
+          [](lv_event_t *event) {
+            auto *row_context = static_cast<RowContext *>(lv_event_get_user_data(event));
+            row_context->card->choose(row_context->index);
+          },
+          LV_EVENT_SHORT_CLICKED, &row_contexts_[i]);
+    }
+    paint_rows();
+  }
+
+  void on_theme() override {
+    paint_rows();
+  }
+
+ private:
+  struct ActionOption {
+    const char *value;
+    const char *label;
+  };
+  struct RowContext {
+    KegActionsCard *card;
+    size_t index;
+  };
+
+  static constexpr size_t OPTION_COUNT = 5;
+  static constexpr ActionOption OPTIONS[OPTION_COUNT] = {
+      {"Idle", "action_idle"},
+      {"Zero Scale", "action_zero_scale"},
+      {"Calibrate", "action_calibrate"},
+      {"Set Empty Keg", "action_set_empty_keg"},
+      {"Reset to Defaults", "action_reset_defaults"},
+  };
+
+  void choose(size_t index) {
+    if (index >= OPTION_COUNT || current_ == OPTIONS[index].value) return;
+    if (!tessera::action("select.select_option", entity_, "option", OPTIONS[index].value)) {
+      ESP_LOGE(TAG, "Could not send select.select_option for %s", entity_.c_str());
+      return;
+    }
+    current_ = "Idle";
+    paint_rows();
+  }
+
+  void paint_rows() {
+    lv_obj_set_style_bg_color(panel_, ui::color(theme::CARD), 0);
+    for (size_t i = 0; i < OPTION_COUNT; ++i) {
+      const bool selected = current_ == OPTIONS[i].value;
+      lv_obj_set_style_bg_opa(rows_[i], selected ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
+      lv_obj_set_style_bg_color(rows_[i], ui::color(selected ? theme::ACCENT_TINT : theme::CARD), 0);
+      ui::set_color(checks_[i], selected ? theme::ACCENT : theme::CARD);
+      set_hidden(checks_[i], !selected);
+    }
+  }
+
+  static void set_hidden(lv_obj_t *obj, bool hidden) {
+    const bool is_hidden = lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    if (hidden && !is_hidden) lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    if (!hidden && is_hidden) lv_obj_remove_flag(obj, LV_OBJ_FLAG_HIDDEN);
+  }
+
+  const KegTap *plugin_;
+  std::string entity_;
+  std::string current_ = "Idle";
+  lv_obj_t *panel_{};
+  std::array<lv_obj_t *, OPTION_COUNT> rows_{};
+  std::array<lv_obj_t *, OPTION_COUNT> checks_{};
+  std::array<RowContext, OPTION_COUNT> row_contexts_{};
+};
+
+constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::OPTION_COUNT];
+
 void KegTap::setup() {
   add_tile("keg1", [this]() { return new KegTile(this, false); });
   add_tile("keg2", [this]() { return new KegTile(this, true); });
+  add_card("actions", [this]() { return new KegActionsCard(this); });
 }
 
 }  // namespace esphome::keg_tap

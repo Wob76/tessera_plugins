@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Open a keg action menu when a plugin tile is tapped and invoke the configured select entity.
+
 ## 0.3.9
 
 - Use Tessera's supported fridge glyph inside the tile.

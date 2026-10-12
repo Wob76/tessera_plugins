@@ -8,7 +8,14 @@
     "unknown_glasses": "-- glasses",
     "pouring": "Pouring",
     "ready": "Ready",
-    "empty": "Empty"
+    "empty": "Empty",
+    "keg_1_actions": "Keg 1 Actions",
+    "keg_2_actions": "Keg 2 Actions",
+    "action_idle": "Idle",
+    "action_zero_scale": "Zero Scale",
+    "action_calibrate": "Calibrate",
+    "action_set_empty_keg": "Set Empty Keg",
+    "action_reset_defaults": "Reset to Defaults"
   },
   "app": {
     "name": "Kegerator",
@@ -32,6 +39,10 @@
     "input_keg2_pour_rate": "Keg 2 pour rate",
     "input_keg2_pour_rate_hint": "The current pour-rate sensor in litres per minute.",
     "input_keg2_flow": "Keg 2 flow status",
-    "input_keg2_flow_hint": "The binary sensor that is on while the keg is pouring."
+    "input_keg2_flow_hint": "The binary sensor that is on while the keg is pouring.",
+    "input_keg1_action_entity": "Keg 1 action select",
+    "input_keg2_action_entity": "Keg 2 action select",
+    "input_action_entity_hint": "The select entity that the tile's action menu controls.",
+    "keg_actions_card": "Keg actions"
   }
 }

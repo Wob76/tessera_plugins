@@ -3,7 +3,8 @@
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate.
 All tile sizes share a centered count, unit, and volume layout, with Ready or pour status at the top right. The circular
-icon uses Tessera's supported fridge glyph. Pouring tints the full rounded tile pale blue; otherwise, five glasses or
+icon uses Tessera's supported fridge glyph. Tap a tile to open its keg action menu, matching the options of the
+corresponding Home Assistant select entity. Pouring tints the full rounded tile pale blue; otherwise, five glasses or
 fewer tints it pale amber. At zero glasses the tile dims and replaces the volume and count with a large, centered Empty
 status.
 
@@ -11,7 +12,8 @@ status.
 
 - A Tessera screen running Manager 0.4.87 or newer (plugin API 0.8).
 - Home Assistant sensors for each keg's remaining volume, remaining glasses, and pour rate, plus a binary flow sensor.
-- The existing Home Assistant Keg Actions select entities.
+- The Home Assistant Keg Actions select entities.
+- Home Assistant actions enabled for Tessera, so the screen may call `select.select_option`.
 - Volume in litres and pour rate in L/min, matching the units used by this plugin.
 
 ## Set up
@@ -21,9 +23,10 @@ status.
 2. In the plugin's screen inputs, select the four Home Assistant sensors for each keg.
 3. In Layout, add **Keg 1** and/or **Keg 2** from the Plugins group. They can each be used more than once.
 4. Choose a 1x1 tile for a compact view or 2x1 for more breathing room.
-5. To access keg controls, add the existing `select.keg_scales_keg_1_control_action` or
-   `select.keg_scales_keg_2_control_action` as a separate, native Home Assistant tile. Set its **On tap** behavior to
-   **Open control**. The plugin tiles are display-only and do not duplicate or invoke keg actions.
+5. In each plugin tile's options, confirm the action-select entity. The defaults are
+   `select.keg_scales_keg_1_control_action` and `select.keg_scales_keg_2_control_action`; change these if your entity
+   IDs differ. Enable Home Assistant actions in Tessera's integration options and allow the plugin's
+   `select.select_option` permission when prompted.
 
 The default entity IDs match the `keg_scales.yaml` configuration in the smart_kegerator project. Select different
 entities in the screen inputs if your Home Assistant IDs differ.
@@ -35,8 +38,9 @@ entities in the screen inputs if your Home Assistant IDs differ.
 - The flow binary sensor gates the pour-rate display, retaining the scale configuration's debounce and delayed-off
   behavior. The displayed pour status also checks the configured pour-rate sensor as a fallback, so it still appears
   if the binary sensor update is delayed or unavailable. The tile does not recalculate volume or glass counts.
-- The plugin reads the selected sensors through ESPHome's native Home Assistant sensor platforms. It does not
-  reimplement keg calibration or scale actions; the existing Tessera select tile provides the control UI.
+- The plugin reads the selected sensors through ESPHome's native Home Assistant sensor platforms. Its tap menu sends
+  the selected option to the configured Home Assistant select entity; the existing ESPHome select implements the keg
+  calibration and scale actions.
 - An empty reading (zero or fewer glasses) dims the tile and replaces its volume and count with a large Empty status.
   This takes priority over the other background states. Otherwise, a live pour uses the theme's pale blue tint; at
   rest, five glasses or fewer use pale amber.
