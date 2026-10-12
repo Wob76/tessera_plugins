@@ -1,7 +1,7 @@
 id: keg_tap
-version: 0.3.7
+version: 0.3.8
 api: "0.8"
-icon: beer
+icon: fridge
 maintainer: Wob76
 license: MIT
 stage: beta
@@ -33,13 +33,13 @@ inputs:
 tiles:
   - id: keg1
     name: tile_keg1
-    icon: beer
+    icon: fridge
     sizes: { min: 1x1, max: 2x2 }
     memory: 900
     example: tile_keg1_example
   - id: keg2
     name: tile_keg2
-    icon: beer
+    icon: fridge
     sizes: { min: 1x1, max: 2x2 }
     memory: 900
     example: tile_keg2_example

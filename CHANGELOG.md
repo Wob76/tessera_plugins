@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.8
+
+- Use Tessera's supported fridge icon for the plugin and tile listings.
+
 ## 0.3.7
 
 - Replace volume and glass count with a large Empty status when no glasses remain.
