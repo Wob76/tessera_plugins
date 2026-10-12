@@ -2,10 +2,10 @@
 
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate.
-The 1x1 layout centers the glass count and unit above a footer with volume and pour status side by side. The wide 2x1
-layout centers the count and unit in one column, with volume and status aligned in the other. The tall 1x2 layout
-centers the count and places volume and status side by side along the bottom. Pouring tints the full rounded tile
-pale blue; otherwise, five glasses or fewer tints it pale amber. At zero glasses the tile dims to show the keg is empty.
+The 1x1 layout keeps the count and unit together above a compact footer. The wide 2x1 layout balances the count and
+unit in one column against volume and status in the other; taller tiles use the added height. A circular MDI beer-mug
+icon grows with the tile size. Pouring tints the full rounded tile pale blue; otherwise, five glasses or fewer tints it
+pale amber. At zero glasses the tile dims and replaces the volume and count with a large, centered Empty status.
 
 ## What you need
 
@@ -37,8 +37,9 @@ entities in the screen inputs if your Home Assistant IDs differ.
   if the binary sensor update is delayed or unavailable. The tile does not recalculate volume or glass counts.
 - The plugin reads the selected sensors through ESPHome's native Home Assistant sensor platforms. It does not
   reimplement keg calibration or scale actions; the existing Tessera select tile provides the control UI.
-- An empty reading (zero or fewer glasses) dims the text and beer icon and takes priority over the other background
-  states. Otherwise, a live pour uses the theme's pale blue tint; at rest, five glasses or fewer use pale amber.
+- An empty reading (zero or fewer glasses) dims the tile and replaces its volume and count with a large Empty status.
+  This takes priority over the other background states. Otherwise, a live pour uses the theme's pale blue tint; at
+  rest, five glasses or fewer use pale amber.
   Other states use the normal card background.
 
 ## Development

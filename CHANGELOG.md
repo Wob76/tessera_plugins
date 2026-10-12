@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.7
+
+- Replace volume and glass count with a large Empty status when no glasses remain.
+
+## 0.3.6
+
+- Show Empty instead of Ready when no glasses remain.
+
+## 0.3.5
+
+- Space the count and unit together to reduce crowding and balance the wide layout.
+- Replace the drawn glass with a circular MDI beer icon that scales by tile size.
+
 ## 0.3.4
 
 - Fill the rounded tile with state colors and realign the 1x1 and 2x1 labels to prevent overlap and clipping.
