@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- Replace the stemmed glass with a beer pint icon featuring amber beer and foam.
+- Use a dedicated side-by-side layout for 2x1 tiles and keep the status visible in the compact layout.
+- Tint the background blue while pouring and amber at five or fewer glasses (pouring takes priority).
+
 ## 0.2.0
 
 - Make remaining-glass count the main tile value and add a glass icon.

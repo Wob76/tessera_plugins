@@ -1,13 +1,13 @@
 {
   "_meta": { "name": "English" },
   "screen": {
-    "keg_1": "KEG 1",
-    "keg_2": "KEG 2",
+    "keg_1": "Keg 1",
+    "keg_2": "Keg 2",
     "glass": "glass",
     "glasses": "glasses",
     "unknown_glasses": "-- glasses",
-    "pouring": "POURING",
-    "ready": "READY"
+    "pouring": "Pouring",
+    "ready": "Ready"
   },
   "app": {
     "name": "Kegerator",
