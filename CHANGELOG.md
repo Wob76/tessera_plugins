@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Use a compact detail row for 1x1 and 2x1 tiles so the volume remains visible.
+- Remove the tinted icon badge and use a light fridge glyph while pouring for better contrast.
+
 ## 0.4.0
 
 - Open a keg action menu when a plugin tile is tapped and invoke the configured select entity.

@@ -1,12 +1,13 @@
 # Kegerator
 
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
-current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate.
-All tile sizes share a centered count, unit, and volume layout, with Ready or pour status at the top right. The circular
-icon uses Tessera's supported fridge glyph. Tap a tile to open its keg action menu, matching the options of the
-corresponding Home Assistant select entity. Pouring tints the full rounded tile pale blue; otherwise, five glasses or
-fewer tints it pale amber. At zero glasses the tile dims and replaces the volume and count with a large, centered Empty
-status.
+current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate. Compact 1x1
+and 2x1 tiles center the count above a single row with the unit and volume; taller 1x2 and 2x2 tiles keep those details
+stacked. Ready or pour status appears at the top right. The fridge glyph has no background badge and switches to a
+light color while pouring for contrast against the blue tile. Tap a tile to open its keg action menu, matching the
+options of the corresponding Home Assistant select entity. Pouring tints the full rounded tile pale blue; otherwise,
+five glasses or fewer tints it pale amber. At zero glasses the tile dims and replaces the volume and count with a
+large, centered Empty status.
 
 ## What you need
 
@@ -50,4 +51,6 @@ entities in the screen inputs if your Home Assistant IDs differ.
 
 This folder is structured as a standalone Tessera plugin repository. Run Tessera's
 `tools/check.py` and `tools/preview.py` against this folder before publishing. API 0.8 is intentional for the
-Manager version listed above.
+Manager version listed above. The Manager's plugin preview displays the metadata example text in a generic tile
+layout; it does not render this ESPHome/LVGL implementation, so its geometry and state colors can differ from the
+screen. Verify the final appearance on the device.
