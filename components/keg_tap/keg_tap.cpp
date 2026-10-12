@@ -238,11 +238,13 @@ class KegActionsCard : public tessera::Card {
     const int margin = ui::px(16);
     const int inset = ui::px(6);
     const int gap = ui::px(4);
+    const int option_count = static_cast<int>(OPTION_COUNT);
+    const int row_gaps_height = (option_count - 1) * gap;
     const int available_height = std::max(ui::px(1), context.height - margin * 2);
     const int row_height = std::max(
-        ui::px(1), std::min(ui::px(48), (available_height - inset * 2 - (OPTION_COUNT - 1) * gap) / OPTION_COUNT));
+        ui::px(1), std::min(ui::px(48), (available_height - inset * 2 - row_gaps_height) / option_count));
     const int panel_width = std::max(ui::px(1), std::min(context.width - margin * 2, ui::px(440)));
-    const int panel_height = inset * 2 + OPTION_COUNT * row_height + (OPTION_COUNT - 1) * gap;
+    const int panel_height = inset * 2 + option_count * row_height + row_gaps_height;
     const int panel_x = (context.width - panel_width) / 2;
     const int panel_y = std::max(ui::px(8), (context.height - panel_height) / 2);
 
