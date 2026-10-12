@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.9
+
+- Use Tessera's supported fridge glyph inside the tile.
+- Move Ready and pour status to the top right and center the count, unit, and volume in all tile sizes.
+
 ## 0.3.8
 
 - Use Tessera's supported fridge icon for the plugin and tile listings.

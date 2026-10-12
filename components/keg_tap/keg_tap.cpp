@@ -9,7 +9,7 @@ namespace esphome::keg_tap {
 using tessera::Font;
 namespace ui = tessera::ui;
 
-constexpr uint32_t BEER_ICON = 0xF0098;
+constexpr uint32_t FRIDGE_ICON = 0xF0290;
 
 class KegTile : public tessera::Tile {
  public:
@@ -47,7 +47,7 @@ class KegTile : public tessera::Tile {
   void on_tick(uint32_t) override {
     ui::set_text(title_, plugin_->text(keg2_ ? "keg_2" : "keg_1"));
     lv_obj_set_style_text_align(title_, LV_TEXT_ALIGN_LEFT, 0);
-    ui::set_text(icon_label_, ui::icon(BEER_ICON));
+    ui::set_text(icon_label_, ui::icon(FRIDGE_ICON));
     const Font icon_font = wide_ || tall_ ? Font::ICON : Font::ICON_SMALL;
     ui::set_font(icon_label_, icon_font);
     lv_obj_set_style_text_align(icon_label_, LV_TEXT_ALIGN_CENTER, 0);
@@ -77,31 +77,31 @@ class KegTile : public tessera::Tile {
     const float rate = pour_rate_ == nullptr ? NAN : pour_rate_->state;
     pouring_ = (flow_ != nullptr && flow_->state) || (std::isfinite(rate) && rate > 0.25f);
     low_stock_ = std::isfinite(count) && std::lround(count) <= 5;
+    char pouring_text[48];
+    const char *status_text;
     if (empty_) {
-      ui::set_text(flow_label_, plugin_->text("empty"));
+      status_text = plugin_->text("empty");
     } else if (pouring_) {
       if (wide_ && std::isfinite(rate)) {
-        char flow_text[32];
-        std::snprintf(flow_text, sizeof(flow_text), "%s %.1f L/min", plugin_->text("pouring"), rate);
-        ui::set_text(flow_label_, flow_text);
+        std::snprintf(pouring_text, sizeof(pouring_text), "%s %.1f L/min", plugin_->text("pouring"), rate);
+        status_text = pouring_text;
       } else {
-        ui::set_text(flow_label_, plugin_->text("pouring"));
+        status_text = plugin_->text("pouring");
       }
     } else {
-      ui::set_text(flow_label_, plugin_->text("ready"));
+      status_text = plugin_->text("ready");
     }
+    ui::set_text(flow_label_, status_text);
 
     const Font count_font = height_ < ui::px(100) && !wide_ && !tall_ ? Font::HEADLINE : Font::VALUE;
     ui::set_font(glasses_label_, count_font);
-    const Font volume_font = Font::BODY;
-    ui::set_font(volume_label_, volume_font);
     const int title_height = ui::line_height(Font::BODY);
     const int count_height = ui::line_height(count_font);
     const int row_height = ui::line_height(Font::BODY);
     const int pad = ui::px(wide_ ? 12 : 8);
     const int gap = ui::px(4);
     const int icon_size = ui::px(wide_ && tall_ ? 44 : wide_ || tall_ ? 36 : 28);
-    const int icon_font_size = ui::text_width(ui::icon(BEER_ICON), icon_font);
+    const int icon_font_size = ui::text_width(ui::icon(FRIDGE_ICON), icon_font);
     const int icon_font_height = ui::line_height(icon_font);
     const int icon_x = pad;
     const int icon_y = pad;
@@ -110,8 +110,6 @@ class KegTile : public tessera::Tile {
     const int content_top = pad + header_height + gap;
     const int content_bottom = height_ - pad;
     const int content_height = std::max(0, content_bottom - content_top);
-    const int unit_width = ui::text_width(
-        plugin_->text(std::isfinite(count) && std::lround(count) == 1 ? "glass" : "glasses"), Font::BODY);
     set_hidden(glasses_label_, empty_);
     set_hidden(unit_label_, empty_);
     set_hidden(volume_label_, empty_);
@@ -121,8 +119,11 @@ class KegTile : public tessera::Tile {
     lv_obj_set_size(icon_label_, icon_font_size, icon_font_height);
     lv_obj_set_pos(icon_label_, icon_x + (icon_size - icon_font_size) / 2,
                    icon_y + (header_height - icon_font_height) / 2);
+    const int status_width = ui::text_width(status_text, Font::BODY);
+    const int status_x = std::max(title_x + gap, width_ - pad - status_width);
+    const int title_width = std::max(0, status_x - title_x - gap);
     lv_obj_set_pos(title_, title_x, icon_y + (header_height - title_height) / 2);
-    lv_obj_set_size(title_, width_ - title_x - pad, title_height);
+    lv_obj_set_size(title_, title_width, title_height);
 
     if (empty_) {
       const int status_height = ui::line_height(Font::HEADLINE);
@@ -130,70 +131,24 @@ class KegTile : public tessera::Tile {
       lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_CENTER, 0);
       lv_obj_set_size(flow_label_, width_ - pad * 2, status_height);
       lv_obj_set_pos(flow_label_, pad, content_top + std::max(0, (content_height - status_height) / 2));
-    } else if (wide_) {
-      ui::set_font(flow_label_, Font::BODY);
-      const int column_gap = ui::px(10);
-      const int column_width = std::max(0, (width_ - pad * 2 - column_gap) / 2);
-      const int details_x = pad + column_width + column_gap;
-      const int details_width = width_ - details_x - pad;
-      const int count_width = ui::text_width(glasses_text, count_font);
-      const int count_group_width = std::min(column_width, count_width + gap + unit_width);
-      const int count_x = pad + (column_width - count_group_width) / 2;
-      const int count_block_height = count_height + row_height;
-      const int count_y = content_top + std::max(0, (content_height - count_block_height) / 2);
-      lv_obj_set_size(glasses_label_, count_width, count_height);
-      lv_obj_set_pos(glasses_label_, count_x, count_y);
-      lv_obj_set_size(unit_label_, unit_width, row_height);
-      lv_obj_set_pos(unit_label_, count_x + count_width + gap, count_y + count_height - row_height);
-
-      const int volume_height = ui::line_height(volume_font);
-      const int details_height = volume_height + gap + row_height;
-      const int details_y = content_top + std::max(0, (content_height - details_height) / 2);
-      lv_obj_set_size(volume_label_, details_width, volume_height);
-      lv_obj_set_pos(volume_label_, details_x, details_y);
-      lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_LEFT, 0);
-      lv_obj_set_size(flow_label_, details_width, row_height);
-      lv_obj_set_pos(flow_label_, details_x, details_y + volume_height + gap);
-      lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_LEFT, 0);
-    } else if (tall_) {
-      ui::set_font(flow_label_, Font::BODY);
-      const int count_width = ui::text_width(glasses_text, count_font);
-      const int group_width = std::min(width_ - pad * 2, count_width + gap + unit_width);
-      const int start_x = (width_ - group_width) / 2;
-      const int footer_y = height_ - pad - row_height;
-      const int count_y = content_top + std::max(0, (footer_y - content_top - count_height - row_height) / 2);
-      const int footer_gap = ui::px(6);
-      const int footer_width = std::max(0, (width_ - pad * 2 - footer_gap) / 2);
-      lv_obj_set_size(glasses_label_, count_width, count_height);
-      lv_obj_set_pos(glasses_label_, start_x, count_y);
-      lv_obj_set_size(unit_label_, unit_width, row_height);
-      lv_obj_set_pos(unit_label_, start_x + count_width + gap, count_y + count_height - row_height);
-      lv_obj_set_size(volume_label_, footer_width, row_height);
-      lv_obj_set_pos(volume_label_, pad, footer_y);
-      lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_LEFT, 0);
-      lv_obj_set_size(flow_label_, footer_width, row_height);
-      lv_obj_set_pos(flow_label_, pad + footer_width + footer_gap, footer_y);
-      lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_RIGHT, 0);
     } else {
       ui::set_font(flow_label_, Font::BODY);
-      const int group_width = width_ - pad * 2;
-      const int count_width = ui::text_width(glasses_text, count_font);
-      const int count_group_width = std::min(group_width, count_width + gap + unit_width);
-      const int footer_gap = ui::px(6);
-      const int footer_width = std::max(0, (group_width - footer_gap) / 2);
-      const int footer_y = content_bottom - row_height;
-      const int count_y = content_top + std::max(0, (footer_y - gap - content_top - count_height) / 2);
-      const int count_x = (width_ - count_group_width) / 2;
-      lv_obj_set_size(glasses_label_, count_width, count_height);
-      lv_obj_set_pos(glasses_label_, count_x, count_y);
-      lv_obj_set_size(unit_label_, unit_width, row_height);
-      lv_obj_set_pos(unit_label_, count_x + count_width + gap, count_y + count_height - row_height);
-      lv_obj_set_size(volume_label_, footer_width, row_height);
-      lv_obj_set_pos(volume_label_, pad, footer_y);
+      lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_RIGHT, 0);
+      lv_obj_set_size(flow_label_, width_ - status_x - pad, row_height);
+      lv_obj_set_pos(flow_label_, status_x, icon_y + (header_height - row_height) / 2);
+
+      const int content_width = width_ - pad * 2;
+      const int volume_height = row_height;
+      const int stack_height = count_height + gap + row_height + gap + volume_height;
+      const int stack_y = content_top + std::max(0, (content_height - stack_height) / 2);
+      lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_CENTER, 0);
+      lv_obj_set_size(glasses_label_, content_width, count_height);
+      lv_obj_set_pos(glasses_label_, pad, stack_y);
+      lv_obj_set_size(unit_label_, content_width, row_height);
+      lv_obj_set_pos(unit_label_, pad, stack_y + count_height + gap);
       lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_CENTER, 0);
-      lv_obj_set_size(flow_label_, footer_width, row_height);
-      lv_obj_set_pos(flow_label_, pad + footer_width + footer_gap, footer_y);
-      lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_CENTER, 0);
+      lv_obj_set_size(volume_label_, content_width, volume_height);
+      lv_obj_set_pos(volume_label_, pad, stack_y + count_height + gap + row_height + gap);
     }
 
     apply_state_colors();

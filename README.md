@@ -2,10 +2,10 @@
 
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate.
-The 1x1 layout keeps the count and unit together above a compact footer. The wide 2x1 layout balances the count and
-unit in one column against volume and status in the other; taller tiles use the added height. A circular MDI beer-mug
-icon grows with the tile size. Pouring tints the full rounded tile pale blue; otherwise, five glasses or fewer tints it
-pale amber. At zero glasses the tile dims and replaces the volume and count with a large, centered Empty status.
+All tile sizes share a centered count, unit, and volume layout, with Ready or pour status at the top right. The circular
+icon uses Tessera's supported fridge glyph. Pouring tints the full rounded tile pale blue; otherwise, five glasses or
+fewer tints it pale amber. At zero glasses the tile dims and replaces the volume and count with a large, centered Empty
+status.
 
 ## What you need
 
