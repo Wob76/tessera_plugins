@@ -25,8 +25,7 @@ class KegTile : public tessera::Tile {
     wide_ = context.columns > 1;
     tall_ = context.rows > 1;
 
-    surface_ = context.parent;
-    lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
+    surface_ = lv_obj_get_parent(context.parent);
 
     beer_ = lv_obj_create(context.parent);
     lv_obj_set_style_radius(beer_, ui::px(2), 0);
@@ -99,7 +98,7 @@ class KegTile : public tessera::Tile {
 
     const Font count_font = height_ < ui::px(100) && !wide_ && !tall_ ? Font::HEADLINE : Font::VALUE;
     ui::set_font(glasses_label_, count_font);
-    const Font volume_font = wide_ ? Font::BODY_LARGE : Font::BODY;
+    const Font volume_font = Font::BODY;
     ui::set_font(volume_label_, volume_font);
     const int title_height = ui::line_height(Font::BODY);
     const int count_height = ui::line_height(count_font);
@@ -112,6 +111,9 @@ class KegTile : public tessera::Tile {
     const int icon_y = pad;
     const int title_x = icon_x + icon_width + gap;
     const int header_height = std::max(icon_height, title_height);
+    const int content_top = pad + header_height + gap;
+    const int content_bottom = height_ - pad;
+    const int content_height = std::max(0, content_bottom - content_top);
     const int unit_width = ui::text_width(
         plugin_->text(std::isfinite(count) && std::lround(count) == 1 ? "glass" : "glasses"), Font::BODY);
 
@@ -128,19 +130,20 @@ class KegTile : public tessera::Tile {
 
     if (wide_) {
       const int left_width = width_ * 48 / 100;
-      const int count_y = pad + header_height + gap +
-                          std::max(0, (height_ - pad - (pad + header_height + gap) - count_height - row_height) / 2);
+      const int count_block_height = count_height + gap + row_height;
+      const int count_y = content_top + std::max(0, (content_height - count_block_height) / 2);
       lv_obj_set_size(glasses_label_, left_width, count_height);
       lv_obj_set_pos(glasses_label_, pad, count_y);
+      lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_CENTER, 0);
       lv_obj_set_size(unit_label_, left_width, row_height);
-      lv_obj_set_pos(unit_label_, pad, count_y + count_height);
+      lv_obj_set_pos(unit_label_, pad, count_y + count_height + gap);
+      lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_CENTER, 0);
 
       const int details_x = left_width + pad;
       const int details_width = width_ - details_x - pad;
       const int volume_height = ui::line_height(volume_font);
       const int details_height = volume_height + row_height + gap;
-      const int details_y = pad + header_height + gap +
-                            std::max(0, (height_ - pad - (pad + header_height + gap) - details_height) / 2);
+      const int details_y = content_top + std::max(0, (content_height - details_height) / 2);
       lv_obj_set_size(volume_label_, details_width, volume_height);
       lv_obj_set_pos(volume_label_, details_x, details_y);
       lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_LEFT, 0);
@@ -152,7 +155,6 @@ class KegTile : public tessera::Tile {
       const int group_width = std::min(width_ - pad * 2, count_width + gap + unit_width);
       const int start_x = (width_ - group_width) / 2;
       const int footer_y = height_ - pad - row_height;
-      const int content_top = pad + header_height + gap;
       const int count_y = content_top + std::max(0, (footer_y - content_top - count_height - row_height) / 2);
       const int footer_gap = ui::px(6);
       const int footer_width = std::max(0, (width_ - pad * 2 - footer_gap) / 2);
@@ -167,23 +169,23 @@ class KegTile : public tessera::Tile {
       lv_obj_set_pos(flow_label_, pad + footer_width + footer_gap, footer_y);
       lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_RIGHT, 0);
     } else {
-      const int count_width = ui::text_width(glasses_text, count_font);
-      const int group_width = std::min(width_ - pad * 2, count_width + gap + unit_width);
-      const int start_x = (width_ - group_width) / 2;
-      const int flow_y = height_ - pad - row_height;
-      const int volume_y = flow_y - row_height - gap;
-      const int content_top = pad + header_height + gap;
-      const int count_y = content_top +
-                          std::max(0, (volume_y - content_top - count_height) / 2);
-      lv_obj_set_size(glasses_label_, count_width, count_height);
-      lv_obj_set_pos(glasses_label_, start_x, count_y);
-      lv_obj_set_size(unit_label_, unit_width, row_height);
-      lv_obj_set_pos(unit_label_, start_x + count_width + gap, count_y + count_height - row_height);
-      lv_obj_set_size(volume_label_, width_ - pad * 2, row_height);
-      lv_obj_set_pos(volume_label_, pad, volume_y);
+      const int group_width = width_ - pad * 2;
+      const int count_block_height = count_height + gap + row_height;
+      const int footer_y = content_bottom - row_height;
+      const int count_y = content_top + std::max(0, (footer_y - gap - content_top - count_block_height) / 2);
+      const int footer_gap = ui::px(6);
+      const int footer_width = std::max(0, (group_width - footer_gap) / 2);
+      lv_obj_set_size(glasses_label_, group_width, count_height);
+      lv_obj_set_pos(glasses_label_, pad, count_y);
+      lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_CENTER, 0);
+      lv_obj_set_size(unit_label_, group_width, row_height);
+      lv_obj_set_pos(unit_label_, pad, count_y + count_height + gap);
+      lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_CENTER, 0);
+      lv_obj_set_size(volume_label_, footer_width, row_height);
+      lv_obj_set_pos(volume_label_, pad, footer_y);
       lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_CENTER, 0);
-      lv_obj_set_size(flow_label_, width_ - pad * 2, row_height);
-      lv_obj_set_pos(flow_label_, pad, flow_y);
+      lv_obj_set_size(flow_label_, footer_width, row_height);
+      lv_obj_set_pos(flow_label_, pad + footer_width + footer_gap, footer_y);
       lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_CENTER, 0);
     }
 
@@ -203,6 +205,7 @@ class KegTile : public tessera::Tile {
     const theme::Role secondary_text = empty_ ? theme::SUBTLE : theme::INK_SOFT;
     const theme::Role glass_outline = empty_ ? theme::SUBTLE : theme::MUTED;
     const theme::Role beer_color = empty_ ? theme::TRACK : theme::MARK_AMBER;
+    lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
     lv_obj_set_style_border_color(glass_, theme::color(glass_outline), 0);
     lv_obj_set_style_bg_color(beer_, theme::color(beer_color), 0);

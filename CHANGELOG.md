@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4
+
+- Fill the rounded tile with state colors and realign the 1x1 and 2x1 labels to prevent overlap and clipping.
+
 ## 0.3.3
 
 - Support 1x2 and 2x2 placements with a tall-tile layout that uses the additional height.
