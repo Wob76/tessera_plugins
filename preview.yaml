@@ -1,0 +1,29 @@
+tiles:
+  - tile: keg1
+    name: Keg 1
+  - tile: keg2
+    name: Keg 2
+
+states:
+  sensor.keg_scales_keg_1_remaining_volume:
+    state: "12.4"
+    attributes: { unit_of_measurement: L }
+  sensor.keg_scales_keg_1_remaining_glasses:
+    state: "29"
+    attributes: { unit_of_measurement: glasses }
+  sensor.keg_scales_keg_1_pour_rate:
+    state: "0.8"
+    attributes: { unit_of_measurement: L/min }
+  binary_sensor.keg_scales_keg_1_flow:
+    state: "on"
+  sensor.keg_scales_keg_2_remaining_volume:
+    state: "8.1"
+    attributes: { unit_of_measurement: L }
+  sensor.keg_scales_keg_2_remaining_glasses:
+    state: "19"
+    attributes: { unit_of_measurement: glasses }
+  sensor.keg_scales_keg_2_pour_rate:
+    state: "0"
+    attributes: { unit_of_measurement: L/min }
+  binary_sensor.keg_scales_keg_2_flow:
+    state: "off"

@@ -1,0 +1,36 @@
+{
+  "_meta": { "name": "English" },
+  "screen": {
+    "keg_1": "KEG 1",
+    "keg_2": "KEG 2",
+    "glass": "glass",
+    "glasses": "glasses",
+    "unknown_glasses": "-- glasses",
+    "pouring": "POURING",
+    "ready": "READY"
+  },
+  "app": {
+    "name": "Kegerator",
+    "summary": "Show a keg's remaining volume, glasses, and pour status.",
+    "tile_keg1": "Keg 1",
+    "tile_keg1_example": "12.4 L, 29 glasses, pouring",
+    "tile_keg2": "Keg 2",
+    "tile_keg2_example": "8.1 L, 19 glasses, ready",
+    "input_keg1_volume": "Keg 1 volume",
+    "input_keg1_volume_hint": "The remaining-volume sensor in litres.",
+    "input_keg1_glasses": "Keg 1 glasses",
+    "input_keg1_glasses_hint": "The remaining-glasses sensor.",
+    "input_keg1_pour_rate": "Keg 1 pour rate",
+    "input_keg1_pour_rate_hint": "The current pour-rate sensor in litres per minute.",
+    "input_keg1_flow": "Keg 1 flow status",
+    "input_keg1_flow_hint": "The binary sensor that is on while the keg is pouring.",
+    "input_keg2_volume": "Keg 2 volume",
+    "input_keg2_volume_hint": "The remaining-volume sensor in litres.",
+    "input_keg2_glasses": "Keg 2 glasses",
+    "input_keg2_glasses_hint": "The remaining-glasses sensor.",
+    "input_keg2_pour_rate": "Keg 2 pour rate",
+    "input_keg2_pour_rate_hint": "The current pour-rate sensor in litres per minute.",
+    "input_keg2_flow": "Keg 2 flow status",
+    "input_keg2_flow_hint": "The binary sensor that is on while the keg is pouring."
+  }
+}

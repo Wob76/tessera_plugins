@@ -1,0 +1,47 @@
+id: keg_tap
+version: 0.1.0
+api: "0.8"
+icon: beer
+maintainer: Wob76
+license: MIT
+stage: beta
+topics: [home]
+requires:
+  esphome: 2026.6.2
+boards: any
+flash_kb: 8
+
+permissions:
+  read_entities:
+    - "{keg1_volume}"
+    - "{keg1_glasses}"
+    - "{keg1_pour_rate}"
+    - "{keg1_flow}"
+    - "{keg2_volume}"
+    - "{keg2_glasses}"
+    - "{keg2_pour_rate}"
+    - "{keg2_flow}"
+
+inputs:
+  - { id: keg1_volume, kind: entity, domains: [sensor], scope: screen, label: input_keg1_volume, hint: input_keg1_volume_hint }
+  - { id: keg1_glasses, kind: entity, domains: [sensor], scope: screen, label: input_keg1_glasses, hint: input_keg1_glasses_hint }
+  - { id: keg1_pour_rate, kind: entity, domains: [sensor], scope: screen, label: input_keg1_pour_rate, hint: input_keg1_pour_rate_hint }
+  - { id: keg1_flow, kind: entity, domains: [binary_sensor], scope: screen, label: input_keg1_flow, hint: input_keg1_flow_hint }
+  - { id: keg2_volume, kind: entity, domains: [sensor], scope: screen, label: input_keg2_volume, hint: input_keg2_volume_hint }
+  - { id: keg2_glasses, kind: entity, domains: [sensor], scope: screen, label: input_keg2_glasses, hint: input_keg2_glasses_hint }
+  - { id: keg2_pour_rate, kind: entity, domains: [sensor], scope: screen, label: input_keg2_pour_rate, hint: input_keg2_pour_rate_hint }
+  - { id: keg2_flow, kind: entity, domains: [binary_sensor], scope: screen, label: input_keg2_flow, hint: input_keg2_flow_hint }
+
+tiles:
+  - id: keg1
+    name: tile_keg1
+    icon: beer
+    sizes: { min: 1x1, max: 2x1 }
+    memory: 900
+    example: tile_keg1_example
+  - id: keg2
+    name: tile_keg2
+    icon: beer
+    sizes: { min: 1x1, max: 2x1 }
+    memory: 900
+    example: tile_keg2_example
