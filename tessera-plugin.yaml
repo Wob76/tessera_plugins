@@ -28,12 +28,10 @@ permissions:
 inputs:
   - { id: keg1_volume, kind: entity, domains: [sensor], scope: screen, label: input_keg1_volume, hint: input_keg1_volume_hint }
   - { id: keg1_glasses, kind: entity, domains: [sensor], scope: screen, label: input_keg1_glasses, hint: input_keg1_glasses_hint }
-  - { id: keg1_pour_rate, kind: entity, domains: [sensor], scope: screen, label: input_keg1_pour_rate, hint: input_keg1_pour_rate_hint }
   - { id: keg1_flow, kind: entity, domains: [binary_sensor], scope: screen, label: input_keg1_flow, hint: input_keg1_flow_hint }
   - { id: keg1_label, kind: entity, domains: [text], scope: screen, label: input_keg1_label, hint: input_keg1_label_hint }
   - { id: keg2_volume, kind: entity, domains: [sensor], scope: screen, label: input_keg2_volume, hint: input_keg2_volume_hint }
   - { id: keg2_glasses, kind: entity, domains: [sensor], scope: screen, label: input_keg2_glasses, hint: input_keg2_glasses_hint }
-  - { id: keg2_pour_rate, kind: entity, domains: [sensor], scope: screen, label: input_keg2_pour_rate, hint: input_keg2_pour_rate_hint }
   - { id: keg2_flow, kind: entity, domains: [binary_sensor], scope: screen, label: input_keg2_flow, hint: input_keg2_flow_hint }
   - { id: keg2_label, kind: entity, domains: [text], scope: screen, label: input_keg2_label, hint: input_keg2_label_hint }
 tiles:
