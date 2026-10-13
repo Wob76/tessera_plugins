@@ -42,7 +42,8 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
-    // Enable clipping on the surface so the fluid matches the card's rounded corners
+    // Explicitly set the radius and clip the surface container to match the card shape
+    lv_obj_set_style_radius(surface_, ui::px(14), 0);
     lv_obj_set_style_clip_corner(surface_, true, 0);
 
     const int segment_count =
@@ -275,7 +276,6 @@ class KegTile : public tessera::Tile {
       set_hidden(fill_segments_[i], segment_height <= 0);
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
-        // Make sure the segments stretch across the full width of the tile bounds
         lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
         lv_obj_set_style_radius(fill_segments_[i], 0, 0);
         lv_obj_set_style_clip_corner(fill_segments_[i], false, 0);
