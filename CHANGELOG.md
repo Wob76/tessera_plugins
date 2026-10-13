@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.15
+
+- Drop Pour Rate Sensors to comply with 8 input limit
+
 ## 0.4.14
 
 - Expose each full-keg capacity as a persistent Home Assistant config number on the Tessera display.
