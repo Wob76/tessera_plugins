@@ -42,6 +42,7 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
+    // Enable clipping on the surface so the fluid matches the card's rounded corners
     lv_obj_set_style_clip_corner(surface_, true, 0);
 
     const int segment_count =
@@ -260,8 +261,6 @@ class KegTile : public tessera::Tile {
     const int fill_top = height_ - fill_height;
     const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(3), fill_height / 2) : 0;
 
-    const int top_corner_radius = ui::px(6);
-
     for (size_t i = 0; i < fill_count_; ++i) {
       const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
       const int x_end = static_cast<int>((i + 1) * static_cast<size_t>(width_) / fill_count_);
@@ -276,18 +275,10 @@ class KegTile : public tessera::Tile {
       set_hidden(fill_segments_[i], segment_height <= 0);
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
-        lv_obj_set_size(fill_segments_[i], x_end - x_start, segment_height);
-
-        // Only apply top rounding if the fill reaches 100% capacity
-        bool is_top_edge = (fraction >= 0.99f && top <= fill_top + ui::px(2));
-
-        if (is_top_edge) {
-          lv_obj_set_style_radius(fill_segments_[i], top_corner_radius, 0);
-          lv_obj_set_style_clip_corner(fill_segments_[i], true, 0);
-        } else {
-          lv_obj_set_style_radius(fill_segments_[i], 0, 0);
-          lv_obj_set_style_clip_corner(fill_segments_[i], false, 0);
-        }
+        // Make sure the segments stretch across the full width of the tile bounds
+        lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
+        lv_obj_set_style_radius(fill_segments_[i], 0, 0);
+        lv_obj_set_style_clip_corner(fill_segments_[i], false, 0);
       }
     }
   }
@@ -496,4 +487,4 @@ void KegTap::set_full_capacity_liters(bool keg2, int value) {
   capacity_number->make_call().set_value(static_cast<float>(std::clamp(value, 2, 50))).perform();
 }
 
-}
+}  // namespace esphome::keg_tap
