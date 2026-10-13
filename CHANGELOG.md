@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.9
+
+- Match the glasses/unit and volume text size on both wide tile layouts.
+
 ## 0.4.8
 
 - Place the glasses count and unit on the left and remaining volume on the right for both wide tile sizes.
