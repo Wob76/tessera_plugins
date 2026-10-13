@@ -4,10 +4,12 @@ defaults:
   KEG1_GLASSES: sensor.keg_scales_keg_1_remaining_glasses
   KEG1_POUR_RATE: sensor.keg_scales_keg_1_pour_rate
   KEG1_FLOW: binary_sensor.keg_scales_keg_1_flow
+  KEG1_LABEL: text.keg_scales_keg_1_scale_label
   KEG2_VOLUME: sensor.keg_scales_keg_2_remaining_volume
   KEG2_GLASSES: sensor.keg_scales_keg_2_remaining_glasses
   KEG2_POUR_RATE: sensor.keg_scales_keg_2_pour_rate
   KEG2_FLOW: binary_sensor.keg_scales_keg_2_flow
+  KEG2_LABEL: text.keg_scales_keg_2_scale_label
 
 sensor:
   - platform: homeassistant
@@ -35,6 +37,16 @@ sensor:
     entity_id: ${KEG2_POUR_RATE}
     internal: true
 
+text_sensor:
+  - platform: homeassistant
+    id: keg1_label
+    entity_id: ${KEG1_LABEL}
+    internal: true
+  - platform: homeassistant
+    id: keg2_label
+    entity_id: ${KEG2_LABEL}
+    internal: true
+
 binary_sensor:
   - platform: homeassistant
     id: keg1_flow
@@ -50,7 +62,9 @@ keg_tap:
   keg1_glasses: keg1_glasses
   keg1_pour_rate: keg1_pour_rate
   keg1_flow: keg1_flow
+  keg1_label: keg1_label
   keg2_volume: keg2_volume
   keg2_glasses: keg2_glasses
   keg2_pour_rate: keg2_pour_rate
   keg2_flow: keg2_flow
+  keg2_label: keg2_label

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.13
+
+- Use the keg scale's Home Assistant label entities for tile titles.
+- Show full capacity in whole litres and change it in 1 L steps; clip the amber fill to the tile's rounded outline.
+
 ## 0.4.12
 
 - Fix the LVGL flag removal calls so the plugin compiles with LVGL's typed flag API.

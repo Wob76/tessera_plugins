@@ -3,7 +3,9 @@
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. A bottom-up amber fill shows the remaining-volume percentage, with a wave-shaped top except when
 full. Set each keg's full capacity on the screen under **Settings > Plugins > Kegerator**; each defaults to 19 L,
-persists across restarts, and is adjustable from 2 to 50 L in 0.5 L steps. While the keg's flow binary sensor is on, the tile also shows the measured pour rate. The 1x1 and
+persists across restarts, and is adjustable from 2 to 50 L in 1 L steps. The amber fill is clipped to the tile's
+rounded outline. Tile names come from the keg scale's labels
+in Home Assistant. While the keg's flow binary sensor is on, the tile also shows the measured pour rate. The 1x1 and
 1x2 sizes place the count beside its glass unit with remaining volume below. Both wide sizes put the count and unit
 in the left column and remaining volume in the right; the count and volume values use matching text sizes. Ready or
 pour status appears at the top right. The fridge glyph has no background badge and switches to white while pouring for contrast
@@ -15,7 +17,8 @@ large, centered Empty status.
 ## What you need
 
 - A Tessera screen running Manager 0.4.87 or newer (plugin API 0.8).
-- Home Assistant sensors for each keg's remaining volume, remaining glasses, and pour rate, plus a binary flow sensor.
+- Home Assistant sensors for each keg's remaining volume, remaining glasses, and pour rate, a binary flow sensor,
+  and a text label entity (`text.keg_scales_keg_1_scale_label` / `text.keg_scales_keg_2_scale_label` by default).
 - The Home Assistant Keg Actions select entities.
 - Home Assistant actions enabled for Tessera, so the screen may call `select.select_option`.
 - Volume in litres and pour rate in L/min, matching the units used by this plugin.
@@ -24,7 +27,9 @@ large, centered Empty status.
 
 1. Add this plugin to a screen in Tessera. For a private test, use **Add with a link** with the GitHub repository URL
    after placing these files at that repository's root.
-2. In the plugin's screen inputs, select the four Home Assistant sensors for each keg.
+2. In the plugin's screen inputs, select the Home Assistant entities for each keg, including its scale-label text
+   entity. The label entities are provided by `keg_scales.yaml` and can be renamed from their Home Assistant text
+   controls.
 3. In Layout, add **Keg 1** and/or **Keg 2** from the Plugins group. They can each be used more than once.
 4. Choose a 1x1 tile for a compact view or 2x1 for more breathing room.
 5. In each plugin tile's options, confirm the action-select entity. The defaults are
@@ -37,7 +42,7 @@ entities in the screen inputs if your Home Assistant IDs differ.
 
 ## How it works
 
-- Home Assistant entities are read by ESPHome's native Home Assistant sensor platforms on the screen.
+- Home Assistant sensor and text entities are read by ESPHome's native Home Assistant platforms on the screen.
 - Tessera's plugin tile reads those sensor states and updates its labels once per second.
 - The flow binary sensor gates the pour-rate display, retaining the scale configuration's debounce and delayed-off
   behavior. The displayed pour status also checks the configured pour-rate sensor as a fallback, so it still appears
@@ -47,6 +52,8 @@ entities in the screen inputs if your Home Assistant IDs differ.
   calibration and scale actions.
 - The fill percentage is remaining volume divided by that keg's full capacity, clamped to 0-100%. Missing or invalid
   volume readings show no fill. Each touchscreen setting is stored separately in ESPHome preferences on the display.
+- The tile title follows its selected scale-label text entity. If it is empty or not available, the title falls back to
+  Keg 1 or Keg 2.
 - At zero or fewer glasses, the tile dims, hides the fill, and replaces its volume and count with a large Empty status.
   While pouring, the card background uses the theme's pale blue tint; otherwise it uses the normal card background.
 

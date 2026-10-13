@@ -26,6 +26,7 @@ class KegTile : public tessera::Tile {
       : plugin_(plugin),
         keg2_(keg2),
         volume_(plugin->volume(keg2)),
+        label_(plugin->label(keg2)),
         glasses_(plugin->glasses(keg2)),
         pour_rate_(plugin->pour_rate(keg2)),
         flow_(plugin->flow(keg2)) {}
@@ -42,6 +43,7 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
+    lv_obj_set_style_clip_corner(surface_, true, 0);
 
     const int segment_count =
         std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
@@ -70,7 +72,9 @@ class KegTile : public tessera::Tile {
   }
 
   void on_tick(uint32_t) override {
-    ui::set_text(title_, plugin_->text(keg2_ ? "keg_2" : "keg_1"));
+    const char *fallback_title = plugin_->text(keg2_ ? "keg_2" : "keg_1");
+    const std::string label = label_ == nullptr ? "" : label_->state;
+    ui::set_text(title_, label.empty() ? fallback_title : label.c_str());
     lv_obj_set_style_text_align(title_, LV_TEXT_ALIGN_LEFT, 0);
     ui::set_text(icon_label_, ui::icon(FRIDGE_ICON));
     const Font icon_font = tall_ ? Font::ICON : Font::ICON_SMALL;
@@ -314,6 +318,7 @@ class KegTile : public tessera::Tile {
   bool low_stock_ = false;
   bool empty_ = false;
   sensor::Sensor *volume_;
+  text_sensor::TextSensor *label_;
   sensor::Sensor *glasses_;
   sensor::Sensor *pour_rate_;
   binary_sensor::BinarySensor *flow_;
@@ -464,7 +469,16 @@ void KegTap::setup() {
     int restored_capacity = full_capacity_half_liters_[i];
     if (full_capacity_preferences_[i].load(&restored_capacity)) {
       if (restored_capacity >= 4 && restored_capacity <= 100) {
-        full_capacity_half_liters_[i] = restored_capacity;
+        full_capacity_half_liters_[i] = ((restored_capacity + 1) / 2) * 2;
+        if (full_capacity_half_liters_[i] != restored_capacity) {
+          if (!full_capacity_preferences_[i].save(&full_capacity_half_liters_[i])) {
+            ESP_LOGE(TAG, "Could not round stored full capacity for Keg %u to a whole litre",
+                     static_cast<unsigned>(i + 1));
+          } else if (!global_preferences->sync()) {
+            ESP_LOGE(TAG, "Could not commit whole-litre capacity for Keg %u",
+                     static_cast<unsigned>(i + 1));
+          }
+        }
       } else {
         ESP_LOGW(TAG, "Ignoring stored full capacity for Keg %u outside the supported 2-50 L range",
                  static_cast<unsigned>(i + 1));
@@ -477,12 +491,12 @@ void KegTap::setup() {
 }
 
 bool KegTap::settings(tessera::SettingsPage &page) {
-  page.number(text("setting_keg1_full_capacity"), 4, 100, 1, " x 0.5 L",
-              [this]() { return full_capacity_half_liters_[0]; },
-              [this](int value) { set_full_capacity_half_liters(0, value); });
-  page.number(text("setting_keg2_full_capacity"), 4, 100, 1, " x 0.5 L",
-              [this]() { return full_capacity_half_liters_[1]; },
-              [this](int value) { set_full_capacity_half_liters(1, value); });
+  page.number(text("setting_keg1_full_capacity"), 2, 50, 1, " L",
+              [this]() { return (full_capacity_half_liters_[0] + 1) / 2; },
+              [this](int value) { set_full_capacity_half_liters(0, value * 2); });
+  page.number(text("setting_keg2_full_capacity"), 2, 50, 1, " L",
+              [this]() { return (full_capacity_half_liters_[1] + 1) / 2; },
+              [this](int value) { set_full_capacity_half_liters(1, value * 2); });
   return true;
 }
 
