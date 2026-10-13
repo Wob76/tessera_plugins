@@ -144,28 +144,53 @@ class KegTile : public tessera::Tile {
       lv_obj_set_pos(flow_label_, status_x, icon_y + (header_height - row_height) / 2);
 
       const int content_width = width_ - pad * 2;
-      const bool compact_layout = !(wide_ && tall_);
+      const bool narrow_layout = !wide_;
+      const bool narrow_tall_layout = narrow_layout && tall_;
+      const bool stacked_layout = wide_ && tall_;
       const int detail_gap = ui::px(8);
       const char *unit_text = plugin_->text(std::isfinite(count) && std::lround(count) == 1 ? "glass" : "glasses");
-      const int unit_width = ui::text_width(unit_text, Font::BODY);
-      const int detail_width = unit_width + detail_gap + ui::text_width(volume_text, Font::BODY);
       const int volume_height = row_height;
+      const int count_row_height = std::max(count_height, row_height);
       const int stack_height =
-          count_height + gap + row_height + (compact_layout ? 0 : gap + volume_height);
+          count_row_height + gap + row_height + (stacked_layout ? gap + volume_height : 0);
       const int stack_y = content_top + std::max(0, (content_height - stack_height) / 2);
       lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_CENTER, 0);
       lv_obj_set_size(glasses_label_, content_width, count_height);
-      lv_obj_set_pos(glasses_label_, pad, stack_y);
-      if (compact_layout) {
-        const int details_x = pad + std::max(0, (content_width - detail_width) / 2);
+      if (narrow_tall_layout) {
+        const int count_width = ui::text_width(glasses_text, count_font) + ui::px(4);
+        const int unit_width = ui::text_width(unit_text, Font::BODY) + ui::px(4);
+        const int group_width = count_width + detail_gap + unit_width;
+        const int group_x = pad + std::max(0, (content_width - group_width) / 2);
+        lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_RIGHT, 0);
+        lv_obj_set_size(glasses_label_, count_width, count_height);
+        lv_obj_set_pos(glasses_label_, group_x, stack_y + (count_row_height - count_height) / 2);
+        lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_set_size(unit_label_, unit_width, row_height);
+        lv_obj_set_pos(unit_label_, group_x + count_width + detail_gap,
+                       stack_y + (count_row_height - row_height) / 2);
+        lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_size(volume_label_, content_width, volume_height);
+        lv_obj_set_pos(volume_label_, pad, stack_y + count_row_height + gap);
+      } else if (narrow_layout) {
+        char details_text[48];
+        std::snprintf(details_text, sizeof(details_text), "%s  %s", unit_text, volume_text);
+        ui::set_text(unit_label_, details_text);
+        set_hidden(volume_label_, true);
+        lv_obj_set_pos(glasses_label_, pad, stack_y);
+        lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_size(unit_label_, content_width, row_height);
+        lv_obj_set_pos(unit_label_, pad, stack_y + count_height + gap);
+      } else if (!stacked_layout) {
+        const int unit_width = ui::text_width(unit_text, Font::BODY);
+        lv_obj_set_pos(glasses_label_, pad, stack_y);
         lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_set_size(unit_label_, unit_width, row_height);
-        lv_obj_set_pos(unit_label_, details_x, stack_y + count_height + gap);
-        lv_obj_set_size(volume_label_,
-                        std::max(0, content_width - (details_x - pad) - unit_width - detail_gap), volume_height);
-        lv_obj_set_pos(volume_label_, details_x + unit_width + detail_gap, stack_y + count_height + gap);
+        lv_obj_set_pos(unit_label_, pad, stack_y + count_height + gap);
+        lv_obj_set_size(volume_label_, std::max(0, content_width - unit_width - detail_gap), volume_height);
+        lv_obj_set_pos(volume_label_, pad + unit_width + detail_gap, stack_y + count_height + gap);
       } else {
+        lv_obj_set_pos(glasses_label_, pad, stack_y);
         lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_size(unit_label_, content_width, row_height);
         lv_obj_set_pos(unit_label_, pad, stack_y + count_height + gap);

@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.4.3
+
+- Keep the 1x1 detail row in a full-width label to prevent clipping.
+- Place the 1x2 glass unit beside the count and keep volume on its own visible row.
+
 ## 0.4.2
 
-- Keep the count, glasses, and volume visible together on 1x1 and 1x2 tiles.
+- Adjust detail layout for 1x1 and 1x2 tiles.
 - Use Tessera's always-white on-accent color for the fridge glyph while pouring.
 
 ## 0.4.1
