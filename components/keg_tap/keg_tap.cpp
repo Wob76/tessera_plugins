@@ -48,7 +48,8 @@ class KegTile : public tessera::Tile {
     fill_count_ = static_cast<size_t>(segment_count);
     for (size_t i = 0; i < fill_count_; ++i) {
       fill_segments_[i] = lv_obj_create(context.parent);
-      lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+      lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE);
+      lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
       lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
       lv_obj_set_style_bg_opa(fill_segments_[i], LV_OPA_COVER, 0);
       lv_obj_set_style_border_width(fill_segments_[i], 0, 0);

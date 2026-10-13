@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.12
+
+- Fix the LVGL flag removal calls so the plugin compiles with LVGL's typed flag API.
+
 ## 0.4.11
 
 - Add persistent per-keg touchscreen capacity settings and show remaining volume as a bottom-up amber fill.
