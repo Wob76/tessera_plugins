@@ -103,20 +103,14 @@ class KegTile : public tessera::Tile {
     ui::set_text(volume_label_, volume_text);
     update_volume_fill(volume);
 
-    const float rate = pour_rate_ == nullptr ? NAN : pour_rate_->state;
-    pouring_ = (flow_ != nullptr && flow_->state) || (std::isfinite(rate) && rate > 0.25f);
+    pouring_ = (flow_ != nullptr && flow_->state);
     low_stock_ = std::isfinite(count) && std::lround(count) <= 5;
     char pouring_text[48];
     const char *status_text;
     if (empty_) {
       status_text = plugin_->text("empty");
     } else if (pouring_) {
-      if (wide_ && std::isfinite(rate)) {
-        std::snprintf(pouring_text, sizeof(pouring_text), "%s %.1f L/min", plugin_->text("pouring"), rate);
-        status_text = pouring_text;
-      } else {
-        status_text = plugin_->text("pouring");
-      }
+      status_text = plugin_->text("pouring");
     } else {
       status_text = plugin_->text("ready");
     }
