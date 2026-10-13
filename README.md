@@ -2,8 +2,10 @@
 
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. A bottom-up amber fill shows the remaining-volume percentage, with a wave-shaped top except when
-full. Set each keg's full capacity on the screen under **Settings > Plugins > Kegerator**; each defaults to 19 L,
-persists across restarts, and is adjustable from 2 to 50 L in 1 L steps. The amber fill is clipped to the tile's
+full. Set each keg's full capacity using the **Keg 1 Full Capacity** and **Keg 2 Full Capacity** config numbers on the
+Tessera display device in Home Assistant or on the device under **Settings > Plugins > Kegerator**. Both controls
+edit the same value. Each defaults to 19 L, persists across restarts, and is adjustable from 2 to 50 L in 1 L steps.
+The amber fill is clipped to the tile's
 rounded outline. Tile names come from the keg scale's labels
 in Home Assistant. While the keg's flow binary sensor is on, the tile also shows the measured pour rate. The 1x1 and
 1x2 sizes place the count beside its glass unit with remaining volume below. Both wide sizes put the count and unit
@@ -51,7 +53,8 @@ entities in the screen inputs if your Home Assistant IDs differ.
   the selected option to the configured Home Assistant select entity; the existing ESPHome select implements the keg
   calibration and scale actions.
 - The fill percentage is remaining volume divided by that keg's full capacity, clamped to 0-100%. Missing or invalid
-  volume readings show no fill. Each touchscreen setting is stored separately in ESPHome preferences on the display.
+  volume or capacity readings show no fill. The Home Assistant config number on the display is the source of truth
+  for both the fill and its persistent value.
 - The tile title follows its selected scale-label text entity. If it is empty or not available, the title falls back to
   Keg 1 or Keg 2.
 - At zero or fewer glasses, the tile dims, hides the fill, and replaces its volume and count with a large Empty status.

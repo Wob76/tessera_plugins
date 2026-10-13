@@ -47,6 +47,32 @@ text_sensor:
     entity_id: ${KEG2_LABEL}
     internal: true
 
+number:
+  - platform: template
+    id: keg1_full_capacity
+    name: "Keg 1 Full Capacity"
+    entity_category: config
+    mode: box
+    unit_of_measurement: "L"
+    optimistic: true
+    initial_value: 19
+    restore_value: true
+    min_value: 2
+    max_value: 50
+    step: 1
+  - platform: template
+    id: keg2_full_capacity
+    name: "Keg 2 Full Capacity"
+    entity_category: config
+    mode: box
+    unit_of_measurement: "L"
+    optimistic: true
+    initial_value: 19
+    restore_value: true
+    min_value: 2
+    max_value: 50
+    step: 1
+
 binary_sensor:
   - platform: homeassistant
     id: keg1_flow
@@ -63,8 +89,10 @@ keg_tap:
   keg1_pour_rate: keg1_pour_rate
   keg1_flow: keg1_flow
   keg1_label: keg1_label
+  keg1_capacity: keg1_full_capacity
   keg2_volume: keg2_volume
   keg2_glasses: keg2_glasses
   keg2_pour_rate: keg2_pour_rate
   keg2_flow: keg2_flow
   keg2_label: keg2_label
+  keg2_capacity: keg2_full_capacity

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.14
+
+- Expose each full-keg capacity as a persistent Home Assistant config number on the Tessera display.
+- Keep the on-device plugin settings and Home Assistant config numbers synchronized to the same values.
+
 ## 0.4.13
 
 - Use the keg scale's Home Assistant label entities for tile titles.

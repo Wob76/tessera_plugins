@@ -16,7 +16,6 @@ namespace ui = tessera::ui;
 
 constexpr uint32_t FRIDGE_ICON = 0xF0290;
 constexpr uint32_t CHECK_ICON = 0xF012C;
-constexpr uint32_t FULL_CAPACITY_PREFERENCE_KEYS[2] = {0x4B314341, 0x4B324341};
 constexpr size_t MAX_FILL_SEGMENTS = 24;
 constexpr float TWO_PI = 6.2831853071795864769f;
 
@@ -27,6 +26,7 @@ class KegTile : public tessera::Tile {
         keg2_(keg2),
         volume_(plugin->volume(keg2)),
         label_(plugin->label(keg2)),
+        capacity_(plugin->capacity(keg2)),
         glasses_(plugin->glasses(keg2)),
         pour_rate_(plugin->pour_rate(keg2)),
         flow_(plugin->flow(keg2)) {}
@@ -258,7 +258,7 @@ class KegTile : public tessera::Tile {
 
  private:
   void update_volume_fill(float volume) {
-    const float capacity = plugin_->full_capacity_liters(keg2_);
+    const float capacity = capacity_ == nullptr ? NAN : capacity_->state;
     const float fraction = !empty_ && std::isfinite(volume) && std::isfinite(capacity) && capacity > 0.0f
                                ? std::clamp(volume / capacity, 0.0f, 1.0f)
                                : 0.0f;
@@ -319,6 +319,7 @@ class KegTile : public tessera::Tile {
   bool empty_ = false;
   sensor::Sensor *volume_;
   text_sensor::TextSensor *label_;
+  number::Number *capacity_;
   sensor::Sensor *glasses_;
   sensor::Sensor *pour_rate_;
   binary_sensor::BinarySensor *flow_;
@@ -464,27 +465,6 @@ class KegActionsCard : public tessera::Card {
 constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::OPTION_COUNT];
 
 void KegTap::setup() {
-  for (size_t i = 0; i < 2; ++i) {
-    full_capacity_preferences_[i] = global_preferences->make_preference<int>(FULL_CAPACITY_PREFERENCE_KEYS[i]);
-    int restored_capacity = full_capacity_half_liters_[i];
-    if (full_capacity_preferences_[i].load(&restored_capacity)) {
-      if (restored_capacity >= 4 && restored_capacity <= 100) {
-        full_capacity_half_liters_[i] = ((restored_capacity + 1) / 2) * 2;
-        if (full_capacity_half_liters_[i] != restored_capacity) {
-          if (!full_capacity_preferences_[i].save(&full_capacity_half_liters_[i])) {
-            ESP_LOGE(TAG, "Could not round stored full capacity for Keg %u to a whole litre",
-                     static_cast<unsigned>(i + 1));
-          } else if (!global_preferences->sync()) {
-            ESP_LOGE(TAG, "Could not commit whole-litre capacity for Keg %u",
-                     static_cast<unsigned>(i + 1));
-          }
-        }
-      } else {
-        ESP_LOGW(TAG, "Ignoring stored full capacity for Keg %u outside the supported 2-50 L range",
-                 static_cast<unsigned>(i + 1));
-      }
-    }
-  }
   add_tile("keg1", [this]() { return new KegTile(this, false); });
   add_tile("keg2", [this]() { return new KegTile(this, true); });
   add_card("actions", [this]() { return new KegActionsCard(this); });
@@ -492,27 +472,21 @@ void KegTap::setup() {
 
 bool KegTap::settings(tessera::SettingsPage &page) {
   page.number(text("setting_keg1_full_capacity"), 2, 50, 1, " L",
-              [this]() { return (full_capacity_half_liters_[0] + 1) / 2; },
-              [this](int value) { set_full_capacity_half_liters(0, value * 2); });
+              [this]() { return full_capacity_liters(false); },
+              [this](int value) { set_full_capacity_liters(false, value); });
   page.number(text("setting_keg2_full_capacity"), 2, 50, 1, " L",
-              [this]() { return (full_capacity_half_liters_[1] + 1) / 2; },
-              [this](int value) { set_full_capacity_half_liters(1, value * 2); });
+              [this]() { return full_capacity_liters(true); },
+              [this](int value) { set_full_capacity_liters(true, value); });
   return true;
 }
 
-void KegTap::set_full_capacity_half_liters(size_t keg_index, int value) {
-  if (keg_index >= 2) return;
-  const int capacity = std::clamp(value, 4, 100);
-  if (capacity == full_capacity_half_liters_[keg_index]) return;
-
-  full_capacity_half_liters_[keg_index] = capacity;
-  if (!full_capacity_preferences_[keg_index].save(&full_capacity_half_liters_[keg_index])) {
-    ESP_LOGE(TAG, "Could not save full capacity setting for Keg %u", static_cast<unsigned>(keg_index + 1));
+void KegTap::set_full_capacity_liters(bool keg2, int value) {
+  number::Number *capacity_number = capacity(keg2);
+  if (capacity_number == nullptr) {
+    ESP_LOGE(TAG, "Cannot set Keg %u capacity: number entity is not configured", keg2 ? 2 : 1);
     return;
   }
-  if (!global_preferences->sync()) {
-    ESP_LOGE(TAG, "Could not commit full capacity setting for Keg %u", static_cast<unsigned>(keg_index + 1));
-  }
+  capacity_number->make_call().set_value(static_cast<float>(std::clamp(value, 2, 50))).perform();
 }
 
 }  // namespace esphome::keg_tap
