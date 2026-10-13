@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.6
+
+- Use the horizontal space on 2x1 tiles for a large count beside the glasses and volume details.
+
 ## 0.4.5
 
 - Keep the glasses count and full detail row visible on horizontal 1x1 and 2x1 tiles.

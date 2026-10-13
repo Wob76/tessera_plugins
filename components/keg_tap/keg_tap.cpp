@@ -155,7 +155,22 @@ class KegTile : public tessera::Tile {
       const int stack_y = content_top + std::max(0, (content_height - stack_height) / 2);
       lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_CENTER, 0);
       lv_obj_set_size(glasses_label_, content_width, count_height);
-      if (!tall_) {
+      if (wide_ && !tall_) {
+        const int count_width = (content_width - detail_gap) / 2;
+        const int details_x = pad + count_width + detail_gap;
+        const int details_width = content_width - count_width - detail_gap;
+        const int details_height = row_height * 2 + gap;
+        const int details_y = content_top + std::max(0, (content_height - details_height) / 2);
+        lv_obj_set_size(glasses_label_, count_width, count_height);
+        const int count_y = content_top + std::max(0, (content_height - count_height) / 2);
+        lv_obj_set_pos(glasses_label_, pad, count_y);
+        lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_set_size(unit_label_, details_width, row_height);
+        lv_obj_set_pos(unit_label_, details_x, details_y);
+        lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_set_size(volume_label_, details_width, row_height);
+        lv_obj_set_pos(volume_label_, details_x, details_y + row_height + gap);
+      } else if (!tall_) {
         char details_text[48];
         std::snprintf(details_text, sizeof(details_text), "%s  %s", unit_text, volume_text);
         ui::set_text(unit_label_, details_text);
