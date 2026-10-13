@@ -268,7 +268,7 @@ class KegActionsCard : public tessera::Card {
 
   void open(const tessera::CardContext &context) override {
     entity_ = context.entity;
-    current_ = "Idle";
+    current_.clear();
 
     const int margin = ui::px(16);
     const int inset = ui::px(6);
@@ -349,12 +349,14 @@ class KegActionsCard : public tessera::Card {
   };
 
   void choose(size_t index) {
-    if (index >= OPTION_COUNT || current_ == OPTIONS[index].value) return;
+    if (index >= OPTION_COUNT) return;
     if (!tessera::action("select.select_option", entity_, "option", OPTIONS[index].value)) {
-      ESP_LOGE(TAG, "Could not send select.select_option for %s", entity_.c_str());
+      ESP_LOGE(TAG, "Could not send select.select_option to %s with option %s", entity_.c_str(),
+               OPTIONS[index].value);
       return;
     }
-    current_ = "Idle";
+    ESP_LOGI(TAG, "Requested select.select_option for %s with option %s", entity_.c_str(), OPTIONS[index].value);
+    current_ = OPTIONS[index].value;
     paint_rows();
   }
 

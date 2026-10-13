@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4
+
+- Keep the selected action highlighted after sending it, and log the requested select entity and option.
+
 ## 0.4.3
 
 - Keep the 1x1 detail row in a full-width label to prevent clipping.
