@@ -42,7 +42,7 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
-    // Explicitly set the radius and clip the surface container to match the card shape
+    // Apply radius and clip corner directly to the tile's background surface container
     lv_obj_set_style_radius(surface_, ui::px(14), 0);
     lv_obj_set_style_clip_corner(surface_, true, 0);
 
