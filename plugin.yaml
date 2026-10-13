@@ -2,7 +2,7 @@
 defaults:
   KEG1_VOLUME: sensor.keg_scales_keg_1_remaining_volume
   KEG1_GLASSES: sensor.keg_scales_keg_1_remaining_glasses
-    KEG1_FLOW: binary_sensor.keg_scales_keg_1_flow
+  KEG1_FLOW: binary_sensor.keg_scales_keg_1_flow
   KEG1_LABEL: text.keg_scales_keg_1_scale_label
   KEG2_VOLUME: sensor.keg_scales_keg_2_remaining_volume
   KEG2_GLASSES: sensor.keg_scales_keg_2_remaining_glasses
