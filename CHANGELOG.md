@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.11
+
+- Add persistent per-keg touchscreen capacity settings and show remaining volume as a bottom-up amber fill.
+- Shape the fill level with a wave edge except when full; keep tile text and the pouring tint visible.
+
 ## 0.4.10
 
 - Match the volume value's font size to the glasses count on wide tiles; keep the glasses unit at body size.

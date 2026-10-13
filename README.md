@@ -1,14 +1,15 @@
 # Kegerator
 
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
-current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate. The 1x1 and
+current pour status. A bottom-up amber fill shows the remaining-volume percentage, with a wave-shaped top except when
+full. Set each keg's full capacity on the screen under **Settings > Plugins > Kegerator**; each defaults to 19 L,
+persists across restarts, and is adjustable from 2 to 50 L in 0.5 L steps. While the keg's flow binary sensor is on, the tile also shows the measured pour rate. The 1x1 and
 1x2 sizes place the count beside its glass unit with remaining volume below. Both wide sizes put the count and unit
 in the left column and remaining volume in the right; the count and volume values use matching text sizes. Ready or
 pour status appears at the top right. The fridge glyph has no background badge and switches to white while pouring for contrast
 against the blue tile. Tap a tile to open its keg action menu, matching the
 options of the corresponding Home Assistant select entity; the requested action stays checked in the menu after it is
-sent. Pouring tints the full rounded tile pale blue; otherwise,
-five glasses or fewer tints it pale amber. At zero glasses the tile dims and replaces the volume and count with a
+sent. Pouring tints the tile pale blue behind the amber fill. At zero glasses the tile dims and replaces the volume and count with a
 large, centered Empty status.
 
 ## What you need
@@ -44,10 +45,10 @@ entities in the screen inputs if your Home Assistant IDs differ.
 - The plugin reads the selected sensors through ESPHome's native Home Assistant sensor platforms. Its tap menu sends
   the selected option to the configured Home Assistant select entity; the existing ESPHome select implements the keg
   calibration and scale actions.
-- An empty reading (zero or fewer glasses) dims the tile and replaces its volume and count with a large Empty status.
-  This takes priority over the other background states. Otherwise, a live pour uses the theme's pale blue tint; at
-  rest, five glasses or fewer use pale amber.
-  Other states use the normal card background.
+- The fill percentage is remaining volume divided by that keg's full capacity, clamped to 0-100%. Missing or invalid
+  volume readings show no fill. Each touchscreen setting is stored separately in ESPHome preferences on the display.
+- At zero or fewer glasses, the tile dims, hides the fill, and replaces its volume and count with a large Empty status.
+  While pouring, the card background uses the theme's pale blue tint; otherwise it uses the normal card background.
 
 ## Development
 

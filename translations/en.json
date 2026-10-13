@@ -3,6 +3,8 @@
   "screen": {
     "keg_1": "Keg 1",
     "keg_2": "Keg 2",
+    "setting_keg1_full_capacity": "Keg 1 full capacity",
+    "setting_keg2_full_capacity": "Keg 2 full capacity",
     "glass": "glass",
     "glasses": "glasses",
     "unknown_glasses": "-- glasses",

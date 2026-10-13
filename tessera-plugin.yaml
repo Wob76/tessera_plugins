@@ -1,5 +1,5 @@
 id: keg_tap
-version: 0.4.10
+version: 0.4.11
 api: "0.8"
 icon: fridge
 maintainer: Wob76
@@ -37,7 +37,7 @@ tiles:
     name: tile_keg1
     icon: fridge
     sizes: { min: 1x1, max: 2x2 }
-    memory: 900
+    memory: 5000
     example: tile_keg1_example
     options:
       - { id: action_entity, kind: text, label: input_keg1_action_entity, hint: input_action_entity_hint, default: "select.keg_scales_keg_1_control_action" }
@@ -45,7 +45,7 @@ tiles:
     name: tile_keg2
     icon: fridge
     sizes: { min: 1x1, max: 2x2 }
-    memory: 900
+    memory: 5000
     example: tile_keg2_example
     options:
       - { id: action_entity, kind: text, label: input_keg2_action_entity, hint: input_action_entity_hint, default: "select.keg_scales_keg_2_control_action" }

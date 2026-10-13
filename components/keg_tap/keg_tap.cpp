@@ -16,6 +16,9 @@ namespace ui = tessera::ui;
 
 constexpr uint32_t FRIDGE_ICON = 0xF0290;
 constexpr uint32_t CHECK_ICON = 0xF012C;
+constexpr uint32_t FULL_CAPACITY_PREFERENCE_KEYS[2] = {0x4B314341, 0x4B324341};
+constexpr size_t MAX_FILL_SEGMENTS = 24;
+constexpr float TWO_PI = 6.2831853071795864769f;
 
 class KegTile : public tessera::Tile {
  public:
@@ -39,6 +42,19 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
+
+    const int segment_count =
+        std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
+    fill_count_ = static_cast<size_t>(segment_count);
+    for (size_t i = 0; i < fill_count_; ++i) {
+      fill_segments_[i] = lv_obj_create(context.parent);
+      lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+      lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
+      lv_obj_set_style_bg_opa(fill_segments_[i], LV_OPA_COVER, 0);
+      lv_obj_set_style_border_width(fill_segments_[i], 0, 0);
+      lv_obj_set_style_radius(fill_segments_[i], 0, 0);
+      lv_obj_add_flag(fill_segments_[i], LV_OBJ_FLAG_HIDDEN);
+    }
 
     title_ = ui::label(context.parent, Font::BODY, theme::MUTED);
     icon_label_ = ui::label(context.parent, Font::ICON, theme::ACCENT);
@@ -81,6 +97,7 @@ class KegTile : public tessera::Tile {
       std::snprintf(volume_text, sizeof(volume_text), "-- L");
     }
     ui::set_text(volume_label_, volume_text);
+    update_volume_fill(volume);
 
     const float rate = pour_rate_ == nullptr ? NAN : pour_rate_->state;
     pouring_ = (flow_ != nullptr && flow_->state) || (std::isfinite(rate) && rate > 0.25f);
@@ -207,8 +224,7 @@ class KegTile : public tessera::Tile {
         lv_obj_set_pos(glasses_label_, group_x, stack_y + (count_row_height - count_height) / 2);
         lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_set_size(unit_label_, unit_width, row_height);
-        lv_obj_set_pos(unit_label_, group_x + count_width + detail_gap,
-                       stack_y + (count_row_height - row_height) / 2);
+        lv_obj_set_pos(unit_label_, group_x + count_width + detail_gap, stack_y + (count_row_height - row_height) / 2);
         lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_size(volume_label_, content_width, volume_height);
         lv_obj_set_pos(volume_label_, pad, stack_y + count_row_height + gap);
@@ -236,6 +252,33 @@ class KegTile : public tessera::Tile {
   }
 
  private:
+  void update_volume_fill(float volume) {
+    const float capacity = plugin_->full_capacity_liters(keg2_);
+    const float fraction = !empty_ && std::isfinite(volume) && std::isfinite(capacity) && capacity > 0.0f
+                               ? std::clamp(volume / capacity, 0.0f, 1.0f)
+                               : 0.0f;
+    const int fill_height = static_cast<int>(std::lround(height_ * fraction));
+    const int fill_top = height_ - fill_height;
+    const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(3), fill_height / 2) : 0;
+
+    for (size_t i = 0; i < fill_count_; ++i) {
+      const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
+      const int x_end = static_cast<int>((i + 1) * static_cast<size_t>(width_) / fill_count_);
+      int wave_offset = 0;
+      if (amplitude > 0) {
+        const float phase = static_cast<float>(i) * TWO_PI / static_cast<float>(fill_count_);
+        wave_offset = static_cast<int>(std::lround(amplitude * std::sin(phase)));
+      }
+      const int top = std::clamp(fill_top + wave_offset, 0, std::max(0, height_ - 1));
+      const int segment_height = height_ - top;
+      set_hidden(fill_segments_[i], segment_height <= 0);
+      if (segment_height > 0) {
+        lv_obj_set_pos(fill_segments_[i], x_start, top);
+        lv_obj_set_size(fill_segments_[i], x_end - x_start, segment_height);
+      }
+    }
+  }
+
   static void set_hidden(lv_obj_t *obj, bool hidden) {
     const bool is_hidden = lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
     if (hidden && !is_hidden) lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
@@ -243,14 +286,15 @@ class KegTile : public tessera::Tile {
   }
 
   void apply_state_colors() {
-    const theme::Role surface_role = !empty_ && pouring_ ? theme::ACCENT_TINT
-                                      : !empty_ && low_stock_ ? theme::AMBER_TRACK
-                                                              : theme::CARD;
+    const theme::Role surface_role = !empty_ && pouring_ ? theme::ACCENT_TINT : theme::CARD;
     const theme::Role primary_text = empty_ ? theme::MUTED : theme::INK;
     const theme::Role secondary_text = empty_ ? theme::SUBTLE : theme::INK_SOFT;
     const theme::Role icon_color = empty_ ? theme::MUTED : pouring_ ? theme::ON_ACCENT : theme::ACCENT;
     lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
+    for (size_t i = 0; i < fill_count_; ++i) {
+      lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
+    }
     lv_obj_set_style_text_color(icon_label_, theme::color(icon_color), 0);
     ui::set_color(title_, empty_ ? theme::SUBTLE : theme::MUTED);
     ui::set_color(glasses_label_, primary_text);
@@ -276,6 +320,8 @@ class KegTile : public tessera::Tile {
   int tile_ = -1;
   int width_ = 0;
   int height_ = 0;
+  size_t fill_count_ = 0;
+  std::array<lv_obj_t *, MAX_FILL_SEGMENTS> fill_segments_{};
   lv_obj_t *surface_{};
   lv_obj_t *icon_label_{};
   lv_obj_t *title_{};
@@ -412,9 +458,46 @@ class KegActionsCard : public tessera::Card {
 constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::OPTION_COUNT];
 
 void KegTap::setup() {
+  for (size_t i = 0; i < 2; ++i) {
+    full_capacity_preferences_[i] = global_preferences->make_preference<int>(FULL_CAPACITY_PREFERENCE_KEYS[i]);
+    int restored_capacity = full_capacity_half_liters_[i];
+    if (full_capacity_preferences_[i].load(&restored_capacity)) {
+      if (restored_capacity >= 4 && restored_capacity <= 100) {
+        full_capacity_half_liters_[i] = restored_capacity;
+      } else {
+        ESP_LOGW(TAG, "Ignoring stored full capacity for Keg %u outside the supported 2-50 L range",
+                 static_cast<unsigned>(i + 1));
+      }
+    }
+  }
   add_tile("keg1", [this]() { return new KegTile(this, false); });
   add_tile("keg2", [this]() { return new KegTile(this, true); });
   add_card("actions", [this]() { return new KegActionsCard(this); });
+}
+
+bool KegTap::settings(tessera::SettingsPage &page) {
+  page.number(text("setting_keg1_full_capacity"), 4, 100, 1, " x 0.5 L",
+              [this]() { return full_capacity_half_liters_[0]; },
+              [this](int value) { set_full_capacity_half_liters(0, value); });
+  page.number(text("setting_keg2_full_capacity"), 4, 100, 1, " x 0.5 L",
+              [this]() { return full_capacity_half_liters_[1]; },
+              [this](int value) { set_full_capacity_half_liters(1, value); });
+  return true;
+}
+
+void KegTap::set_full_capacity_half_liters(size_t keg_index, int value) {
+  if (keg_index >= 2) return;
+  const int capacity = std::clamp(value, 4, 100);
+  if (capacity == full_capacity_half_liters_[keg_index]) return;
+
+  full_capacity_half_liters_[keg_index] = capacity;
+  if (!full_capacity_preferences_[keg_index].save(&full_capacity_half_liters_[keg_index])) {
+    ESP_LOGE(TAG, "Could not save full capacity setting for Keg %u", static_cast<unsigned>(keg_index + 1));
+    return;
+  }
+  if (!global_preferences->sync()) {
+    ESP_LOGE(TAG, "Could not commit full capacity setting for Keg %u", static_cast<unsigned>(keg_index + 1));
+  }
 }
 
 }  // namespace esphome::keg_tap
