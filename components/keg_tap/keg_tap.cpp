@@ -55,6 +55,7 @@ class KegTile : public tessera::Tile {
       lv_obj_set_style_bg_opa(fill_segments_[i], LV_OPA_COVER, 0);
       lv_obj_set_style_border_width(fill_segments_[i], 0, 0);
       lv_obj_set_style_radius(fill_segments_[i], 0, 0);
+      lv_obj_set_style_clip_corner(fill_segments_[i], false, 0);
       lv_obj_add_flag(fill_segments_[i], LV_OBJ_FLAG_HIDDEN);
     }
 
@@ -139,7 +140,7 @@ class KegTile : public tessera::Tile {
 
     lv_obj_set_size(icon_label_, icon_font_size, icon_font_height);
     lv_obj_set_pos(icon_label_, icon_x + (icon_slot_size - icon_font_size) / 2,
-                   icon_y + (header_height - icon_font_height) / 2);
+                    icon_y + (header_height - icon_font_height) / 2);
     const int status_width = ui::text_width(status_text, Font::BODY);
     const int status_x = std::max(title_x + gap, width_ - pad - status_width);
     const int title_width = std::max(0, status_x - title_x - gap);
@@ -253,11 +254,13 @@ class KegTile : public tessera::Tile {
   void update_volume_fill(float volume) {
     const float capacity = capacity_ == nullptr ? NAN : capacity_->state;
     const float fraction = !empty_ && std::isfinite(volume) && std::isfinite(capacity) && capacity > 0.0f
-                               ? std::clamp(volume / capacity, 0.0f, 1.0f)
-                               : 0.0f;
+                            ? std::clamp(volume / capacity, 0.0f, 1.0f)
+                            : 0.0f;
     const int fill_height = static_cast<int>(std::lround(height_ * fraction));
     const int fill_top = height_ - fill_height;
     const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(3), fill_height / 2) : 0;
+
+    const int top_corner_radius = ui::px(6);
 
     for (size_t i = 0; i < fill_count_; ++i) {
       const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
@@ -269,10 +272,22 @@ class KegTile : public tessera::Tile {
       }
       const int top = std::clamp(fill_top + wave_offset, 0, std::max(0, height_ - 1));
       const int segment_height = height_ - top;
+      
       set_hidden(fill_segments_[i], segment_height <= 0);
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
         lv_obj_set_size(fill_segments_[i], x_end - x_start, segment_height);
+
+        // Only apply top rounding if the fill reaches 100% capacity
+        bool is_top_edge = (fraction >= 0.99f && top <= fill_top + ui::px(2));
+
+        if (is_top_edge) {
+          lv_obj_set_style_radius(fill_segments_[i], top_corner_radius, 0);
+          lv_obj_set_style_clip_corner(fill_segments_[i], true, 0);
+        } else {
+          lv_obj_set_style_radius(fill_segments_[i], 0, 0);
+          lv_obj_set_style_clip_corner(fill_segments_[i], false, 0);
+        }
       }
     }
   }
@@ -299,8 +314,8 @@ class KegTile : public tessera::Tile {
     ui::set_color(unit_label_, secondary_text);
     ui::set_color(volume_label_, secondary_text);
     ui::set_color(flow_label_, empty_ ? theme::SUBTLE
-                                     : pouring_ ? theme::ACCENT
-                                                : low_stock_ ? theme::MARK_AMBER : theme::MUTED);
+                                      : pouring_ ? theme::ACCENT
+                                                 : low_stock_ ? theme::MARK_AMBER : theme::MUTED);
   }
 
   const KegTap *plugin_;
@@ -481,4 +496,4 @@ void KegTap::set_full_capacity_liters(bool keg2, int value) {
   capacity_number->make_call().set_value(static_cast<float>(std::clamp(value, 2, 50))).perform();
 }
 
-}  // namespace esphome::keg_tap
+}
