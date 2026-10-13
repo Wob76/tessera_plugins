@@ -161,7 +161,7 @@ class KegTile : public tessera::Tile {
         const int detail_column_gap = ui::px(12);
         const int column_width = (content_width - detail_column_gap) / 2;
         const int count_width = ui::text_width(glasses_text, count_font) + ui::px(8);
-        const int unit_width = ui::text_width(unit_text, wide_detail_font) + ui::px(8);
+        const int unit_width = ui::text_width(unit_text, Font::BODY) + ui::px(8);
         const int group_width = count_width + detail_gap + unit_width;
         const int group_x = pad + std::max(0, (column_width - group_width) / 2);
         const int wide_row_height = std::max(count_height, wide_detail_height);
@@ -171,10 +171,10 @@ class KegTile : public tessera::Tile {
         lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_RIGHT, 0);
         lv_obj_set_size(glasses_label_, count_width, count_height);
         lv_obj_set_pos(glasses_label_, group_x, row_y + (wide_row_height - count_height) / 2);
-        ui::set_font(unit_label_, wide_detail_font);
+        ui::set_font(unit_label_, Font::BODY);
         lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_LEFT, 0);
-        lv_obj_set_size(unit_label_, unit_width, wide_detail_height);
-        const int unit_y = row_y + (wide_row_height - wide_detail_height) / 2;
+        lv_obj_set_size(unit_label_, unit_width, row_height);
+        const int unit_y = row_y + (wide_row_height - row_height) / 2;
         lv_obj_set_pos(unit_label_, group_x + count_width + detail_gap, unit_y);
         ui::set_font(volume_label_, wide_detail_font);
         lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_CENTER, 0);

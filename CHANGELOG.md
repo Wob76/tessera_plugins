@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.10
+
+- Match the volume value's font size to the glasses count on wide tiles; keep the glasses unit at body size.
+
 ## 0.4.9
 
 - Match the glasses/unit and volume text size on both wide tile layouts.

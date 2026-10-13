@@ -3,8 +3,8 @@
 Two Tessera tiles for a smart kegerator. Each tile combines a keg's remaining litres, estimated glasses left, and
 current pour status. While the keg's flow binary sensor is on, the tile also shows the measured pour rate. The 1x1 and
 1x2 sizes place the count beside its glass unit with remaining volume below. Both wide sizes put the count and unit
-in the left column and remaining volume in the right, using matching text sizes for the unit and volume. Ready or pour status
-appears at the top right. The fridge glyph has no background badge and switches to white while pouring for contrast
+in the left column and remaining volume in the right; the count and volume values use matching text sizes. Ready or
+pour status appears at the top right. The fridge glyph has no background badge and switches to white while pouring for contrast
 against the blue tile. Tap a tile to open its keg action menu, matching the
 options of the corresponding Home Assistant select entity; the requested action stays checked in the menu after it is
 sent. Pouring tints the full rounded tile pale blue; otherwise,
