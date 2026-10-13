@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.16
+
+- Fix Rounding on Amber Fill
+
 ## 0.4.15
 
 - Drop Pour Rate Sensors to comply with 8 input limit
