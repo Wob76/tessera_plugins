@@ -155,7 +155,27 @@ class KegTile : public tessera::Tile {
       const int stack_y = content_top + std::max(0, (content_height - stack_height) / 2);
       lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_CENTER, 0);
       lv_obj_set_size(glasses_label_, content_width, count_height);
-      if (!tall_) {
+      if (wide_) {
+        const int detail_column_gap = ui::px(12);
+        const int column_width = (content_width - detail_column_gap) / 2;
+        const int count_width = ui::text_width(glasses_text, count_font) + ui::px(8);
+        const int unit_width = ui::text_width(unit_text, Font::BODY) + ui::px(8);
+        const int group_width = count_width + detail_gap + unit_width;
+        const int group_x = pad + std::max(0, (column_width - group_width) / 2);
+        const int row_y = content_top + std::max(0, (content_height - count_row_height) / 2);
+        const int volume_x = pad + column_width + detail_column_gap;
+        const int volume_width = content_width - column_width - detail_column_gap;
+        lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_RIGHT, 0);
+        lv_obj_set_size(glasses_label_, count_width, count_height);
+        lv_obj_set_pos(glasses_label_, group_x, row_y + (count_row_height - count_height) / 2);
+        lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_LEFT, 0);
+        lv_obj_set_size(unit_label_, unit_width, row_height);
+        const int unit_y = row_y + (count_row_height - row_height) / 2;
+        lv_obj_set_pos(unit_label_, group_x + count_width + detail_gap, unit_y);
+        lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_size(volume_label_, volume_width, volume_height);
+        lv_obj_set_pos(volume_label_, volume_x, row_y + (count_row_height - volume_height) / 2);
+      } else if (!tall_) {
         const int count_width = ui::text_width(glasses_text, count_font) + ui::px(10);
         const int unit_width = ui::text_width(unit_text, Font::BODY) + ui::px(10);
         const int group_width = count_width + detail_gap + unit_width;

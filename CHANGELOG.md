@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.8
+
+- Place the glasses count and unit on the left and remaining volume on the right for both wide tile sizes.
+
 ## 0.4.7
 
 - Match the 1x2 count-and-unit grouping on both horizontal tile sizes, with volume below.
