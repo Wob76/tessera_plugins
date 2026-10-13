@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.7
+
+- Match the 1x2 count-and-unit grouping on both horizontal tile sizes, with volume below.
+
 ## 0.4.6
 
 - Use the horizontal space on 2x1 tiles for a large count beside the glasses and volume details.
