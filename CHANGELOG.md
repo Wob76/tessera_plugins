@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5
+
+- Keep the glasses count and full detail row visible on horizontal 1x1 and 2x1 tiles.
+
 ## 0.4.4
 
 - Keep the selected action highlighted after sending it, and log the requested select entity and option.

@@ -101,7 +101,7 @@ class KegTile : public tessera::Tile {
     }
     ui::set_text(flow_label_, status_text);
 
-    const Font count_font = height_ < ui::px(100) && !wide_ && !tall_ ? Font::HEADLINE : Font::VALUE;
+    const Font count_font = !tall_ || height_ < ui::px(100) ? Font::HEADLINE : Font::VALUE;
     ui::set_font(glasses_label_, count_font);
     const int title_height = ui::line_height(Font::BODY);
     const int count_height = ui::line_height(count_font);
@@ -144,8 +144,7 @@ class KegTile : public tessera::Tile {
       lv_obj_set_pos(flow_label_, status_x, icon_y + (header_height - row_height) / 2);
 
       const int content_width = width_ - pad * 2;
-      const bool narrow_layout = !wide_;
-      const bool narrow_tall_layout = narrow_layout && tall_;
+      const bool narrow_tall_layout = !wide_ && tall_;
       const bool stacked_layout = wide_ && tall_;
       const int detail_gap = ui::px(8);
       const char *unit_text = plugin_->text(std::isfinite(count) && std::lround(count) == 1 ? "glass" : "glasses");
@@ -156,7 +155,19 @@ class KegTile : public tessera::Tile {
       const int stack_y = content_top + std::max(0, (content_height - stack_height) / 2);
       lv_obj_set_style_text_align(glasses_label_, LV_TEXT_ALIGN_CENTER, 0);
       lv_obj_set_size(glasses_label_, content_width, count_height);
-      if (narrow_tall_layout) {
+      if (!tall_) {
+        char details_text[48];
+        std::snprintf(details_text, sizeof(details_text), "%s  %s", unit_text, volume_text);
+        ui::set_text(unit_label_, details_text);
+        set_hidden(volume_label_, true);
+        const int detail_y = std::max(content_top, height_ - pad - row_height);
+        const int count_area_height = std::max(0, detail_y - gap - content_top);
+        const int count_y = content_top + std::max(0, (count_area_height - count_height) / 2);
+        lv_obj_set_pos(glasses_label_, pad, count_y);
+        lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_size(unit_label_, content_width, row_height);
+        lv_obj_set_pos(unit_label_, pad, detail_y);
+      } else if (narrow_tall_layout) {
         const int count_width = ui::text_width(glasses_text, count_font) + ui::px(4);
         const int unit_width = ui::text_width(unit_text, Font::BODY) + ui::px(4);
         const int group_width = count_width + detail_gap + unit_width;
@@ -171,24 +182,6 @@ class KegTile : public tessera::Tile {
         lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_size(volume_label_, content_width, volume_height);
         lv_obj_set_pos(volume_label_, pad, stack_y + count_row_height + gap);
-      } else if (narrow_layout) {
-        char details_text[48];
-        std::snprintf(details_text, sizeof(details_text), "%s  %s", unit_text, volume_text);
-        ui::set_text(unit_label_, details_text);
-        set_hidden(volume_label_, true);
-        lv_obj_set_pos(glasses_label_, pad, stack_y);
-        lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_CENTER, 0);
-        lv_obj_set_size(unit_label_, content_width, row_height);
-        lv_obj_set_pos(unit_label_, pad, stack_y + count_height + gap);
-      } else if (!stacked_layout) {
-        const int unit_width = ui::text_width(unit_text, Font::BODY);
-        lv_obj_set_pos(glasses_label_, pad, stack_y);
-        lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_LEFT, 0);
-        lv_obj_set_style_text_align(volume_label_, LV_TEXT_ALIGN_LEFT, 0);
-        lv_obj_set_size(unit_label_, unit_width, row_height);
-        lv_obj_set_pos(unit_label_, pad, stack_y + count_height + gap);
-        lv_obj_set_size(volume_label_, std::max(0, content_width - unit_width - detail_gap), volume_height);
-        lv_obj_set_pos(volume_label_, pad + unit_width + detail_gap, stack_y + count_height + gap);
       } else {
         lv_obj_set_pos(glasses_label_, pad, stack_y);
         lv_obj_set_style_text_align(unit_label_, LV_TEXT_ALIGN_CENTER, 0);
