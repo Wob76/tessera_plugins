@@ -1,9 +1,14 @@
 # Changelog
 
+## 0.4.2
+
+- Keep the count, glasses, and volume visible together on 1x1 and 1x2 tiles.
+- Use Tessera's always-white on-accent color for the fridge glyph while pouring.
+
 ## 0.4.1
 
 - Use a compact detail row for 1x1 and 2x1 tiles so the volume remains visible.
-- Remove the tinted icon badge and use a light fridge glyph while pouring for better contrast.
+- Remove the tinted icon badge behind the fridge glyph.
 
 ## 0.4.0
 

@@ -144,7 +144,7 @@ class KegTile : public tessera::Tile {
       lv_obj_set_pos(flow_label_, status_x, icon_y + (header_height - row_height) / 2);
 
       const int content_width = width_ - pad * 2;
-      const bool compact_layout = !tall_;
+      const bool compact_layout = !(wide_ && tall_);
       const int detail_gap = ui::px(8);
       const char *unit_text = plugin_->text(std::isfinite(count) && std::lround(count) == 1 ? "glass" : "glasses");
       const int unit_width = ui::text_width(unit_text, Font::BODY);
@@ -200,7 +200,7 @@ class KegTile : public tessera::Tile {
                                                               : theme::CARD;
     const theme::Role primary_text = empty_ ? theme::MUTED : theme::INK;
     const theme::Role secondary_text = empty_ ? theme::SUBTLE : theme::INK_SOFT;
-    const theme::Role icon_color = empty_ ? theme::MUTED : pouring_ ? theme::INK : theme::ACCENT;
+    const theme::Role icon_color = empty_ ? theme::MUTED : pouring_ ? theme::ON_ACCENT : theme::ACCENT;
     lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
     lv_obj_set_style_text_color(icon_label_, theme::color(icon_color), 0);
