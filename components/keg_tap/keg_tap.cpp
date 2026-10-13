@@ -28,7 +28,6 @@ class KegTile : public tessera::Tile {
         label_(plugin->label(keg2)),
         capacity_(plugin->capacity(keg2)),
         glasses_(plugin->glasses(keg2)),
-        pour_rate_(plugin->pour_rate(keg2)),
         flow_(plugin->flow(keg2)) {}
 
   void create(const tessera::TileContext &context) override {
@@ -321,7 +320,6 @@ class KegTile : public tessera::Tile {
   text_sensor::TextSensor *label_;
   number::Number *capacity_;
   sensor::Sensor *glasses_;
-  sensor::Sensor *pour_rate_;
   binary_sensor::BinarySensor *flow_;
   std::string action_entity_;
   int tile_ = -1;
