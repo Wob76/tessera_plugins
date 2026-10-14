@@ -171,8 +171,11 @@ class KegTile : public tessera::Tile {
     const int icon_y = pad;
     const int title_x = icon_x + icon_slot_size + gap;
     const int header_height = std::max(icon_slot_size, title_height);
+    // 1x2 (narrow + tall): status text moves to a centered footer so the title gets the full header width
+    const bool narrow_tall_layout = !wide_ && tall_;
+    const int footer_height = narrow_tall_layout && !empty_ ? row_height + gap : 0;
     const int content_top = pad + header_height + gap;
-    const int content_bottom = height_ - pad;
+    const int content_bottom = height_ - pad - footer_height;
     const int content_height = std::max(0, content_bottom - content_top);
     set_hidden(glasses_label_, empty_);
     set_hidden(unit_label_, empty_);
@@ -183,7 +186,8 @@ class KegTile : public tessera::Tile {
                     icon_y + (header_height - icon_font_height) / 2);
     const int status_width = ui::text_width(status_text, Font::BODY);
     const int status_x = std::max(title_x + gap, width_ - pad - status_width);
-    const int title_width = std::max(0, status_x - title_x - gap);
+    const int title_width = narrow_tall_layout ? std::max(0, width_ - pad - title_x)
+                                               : std::max(0, status_x - title_x - gap);
     lv_obj_set_pos(title_, title_x, icon_y + (header_height - title_height) / 2);
     lv_obj_set_size(title_, title_width, title_height);
 
@@ -195,12 +199,18 @@ class KegTile : public tessera::Tile {
       lv_obj_set_pos(flow_label_, pad, content_top + std::max(0, (content_height - status_height) / 2));
     } else {
       ui::set_font(flow_label_, Font::BODY);
-      lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_RIGHT, 0);
-      lv_obj_set_size(flow_label_, width_ - status_x - pad, row_height);
-      lv_obj_set_pos(flow_label_, status_x, icon_y + (header_height - row_height) / 2);
+      if (narrow_tall_layout) {
+        // Centered along the bottom of the card
+        lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_size(flow_label_, width_ - pad * 2, row_height);
+        lv_obj_set_pos(flow_label_, pad, height_ - pad - row_height);
+      } else {
+        lv_obj_set_style_text_align(flow_label_, LV_TEXT_ALIGN_RIGHT, 0);
+        lv_obj_set_size(flow_label_, width_ - status_x - pad, row_height);
+        lv_obj_set_pos(flow_label_, status_x, icon_y + (header_height - row_height) / 2);
+      }
 
       const int content_width = width_ - pad * 2;
-      const bool narrow_tall_layout = !wide_ && tall_;
       const bool stacked_layout = wide_ && tall_;
       const int detail_gap = ui::px(8);
       const char *unit_text = plugin_->text(std::isfinite(count) && std::lround(count) == 1 ? "glass" : "glasses");
