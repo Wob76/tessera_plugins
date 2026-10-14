@@ -42,15 +42,27 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
-    // Ensure the card surface is clipped to its radius so the fill matches the card's shape
+    // Ensure the card surface clips its children to the card's rounded corners
     lv_obj_set_style_radius(surface_, ui::px(14), 0);
     lv_obj_set_style_clip_corner(surface_, true, 0);
+
+    // Parent the fill container directly to surface_ so it covers the full card bounds (ignoring content padding)
+    fill_container_ = lv_obj_create(surface_);
+    lv_obj_remove_flag(fill_container_, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(fill_container_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_pos(fill_container_, 0, 0);
+    lv_obj_set_size(fill_container_, width_, height_);
+    lv_obj_set_style_bg_opa(fill_container_, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(fill_container_, 0, 0);
+    lv_obj_set_style_radius(fill_container_, 0, 0);
+    lv_obj_set_style_clip_corner(fill_container_, false, 0);
+    lv_obj_move_background(fill_container_);
 
     const int segment_count =
         std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
     fill_count_ = static_cast<size_t>(segment_count);
     for (size_t i = 0; i < fill_count_; ++i) {
-      fill_segments_[i] = lv_obj_create(context.parent);
+      fill_segments_[i] = lv_obj_create(fill_container_);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
       lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
@@ -276,7 +288,6 @@ class KegTile : public tessera::Tile {
       set_hidden(fill_segments_[i], segment_height <= 0);
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
-        // Make the width stretch slightly past segment borders to avoid sub-pixel gaps
         lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
       }
     }
@@ -327,6 +338,7 @@ class KegTile : public tessera::Tile {
   size_t fill_count_ = 0;
   std::array<lv_obj_t *, MAX_FILL_SEGMENTS> fill_segments_{};
   lv_obj_t *surface_{};
+  lv_obj_t *fill_container_{};
   lv_obj_t *icon_label_{};
   lv_obj_t *title_{};
   lv_obj_t *volume_label_{};
