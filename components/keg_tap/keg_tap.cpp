@@ -60,13 +60,13 @@ class KegTile : public tessera::Tile {
       lv_obj_add_flag(fill_segments_[i], LV_OBJ_FLAG_HIDDEN);
     }
 
-    // Create foam head segments with lighter transparency (LV_OPA_40)
+    // Create foam head segments using a soft cream tone for better text contrast
     for (size_t i = 0; i < fill_count_; ++i) {
       foam_segments_[i] = lv_obj_create(context.parent);
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
-      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_white(), 0);
-      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_40, 0);
+      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_hex(0xE2DDC9), 0);
+      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_COVER, 0);
       lv_obj_set_style_border_width(foam_segments_[i], 0, 0);
       lv_obj_set_style_radius(foam_segments_[i], ui::px(2), 0);
       lv_obj_add_flag(foam_segments_[i], LV_OBJ_FLAG_HIDDEN);
@@ -305,7 +305,7 @@ class KegTile : public tessera::Tile {
         lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
       }
 
-      // Lighter foam head along the wave top
+      // Soft cream foam head along the wave top
       set_hidden(foam_segments_[i], segment_height <= 0 || fraction >= 0.99f);
       if (segment_height > 0 && fraction < 0.99f) {
         lv_obj_set_pos(foam_segments_[i], x_start, std::max(0, top - foam_height));
@@ -340,8 +340,8 @@ class KegTile : public tessera::Tile {
     lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
     for (size_t i = 0; i < fill_count_; ++i) {
       lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
-      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_white(), 0);
-      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_40, 0);
+      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_hex(0xE2DDC9), 0);
+      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_COVER, 0);
     }
     for (size_t i = 0; i < MAX_BUBBLES; ++i) {
       lv_obj_set_style_bg_color(bubbles_[i], lv_color_white(), 0);
@@ -390,9 +390,6 @@ class KegActionsCard : public tessera::Card {
  public:
   explicit KegActionsCard(const KegTap *plugin) : plugin_(plugin) {}
 
-  open_card(const tessera::CardContext &context) override { // Wait, keep standard open signature:
-  }
-  
   void open(const tessera::CardContext &context) override {
     entity_ = context.entity;
     current_.clear();
