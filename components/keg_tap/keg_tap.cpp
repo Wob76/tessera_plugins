@@ -42,6 +42,8 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
+    // Ensure the card surface is clipped to its radius so the fill matches the card's shape
+    lv_obj_set_style_radius(surface_, ui::px(14), 0);
     lv_obj_set_style_clip_corner(surface_, true, 0);
 
     const int segment_count =
@@ -274,7 +276,8 @@ class KegTile : public tessera::Tile {
       set_hidden(fill_segments_[i], segment_height <= 0);
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
-        lv_obj_set_size(fill_segments_[i], x_end - x_start, segment_height);
+        // Make the width stretch slightly past segment borders to avoid sub-pixel gaps
+        lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
       }
     }
   }
