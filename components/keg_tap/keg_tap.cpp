@@ -60,13 +60,13 @@ class KegTile : public tessera::Tile {
       lv_obj_add_flag(fill_segments_[i], LV_OBJ_FLAG_HIDDEN);
     }
 
-    // Create foam head segments with semi-transparency so text remains readable
+    // Create white foam head segments that sit right along the wave peaks
     for (size_t i = 0; i < fill_count_; ++i) {
       foam_segments_[i] = lv_obj_create(context.parent);
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
-      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_hex(0xE2DDC9), 0);
-      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_70, 0);
+      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_white(), 0);
+      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_COVER, 0);
       lv_obj_set_style_border_width(foam_segments_[i], 0, 0);
       lv_obj_set_style_radius(foam_segments_[i], ui::px(2), 0);
       lv_obj_add_flag(foam_segments_[i], LV_OBJ_FLAG_HIDDEN);
@@ -77,7 +77,7 @@ class KegTile : public tessera::Tile {
       bubbles_[i] = lv_obj_create(context.parent);
       lv_obj_remove_flag(bubbles_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(bubbles_[i], LV_OBJ_FLAG_SCROLLABLE);
-      lv_obj_set_style_bg_color(bubbles_[i], lv_color_hex(0xE2DDC9), 0);
+      lv_obj_set_style_bg_color(bubbles_[i], lv_color_white(), 0);
       lv_obj_set_style_bg_opa(bubbles_[i], LV_OPA_30, 0);
       lv_obj_set_style_border_width(bubbles_[i], 0, 0);
       lv_obj_set_style_radius(bubbles_[i], LV_RADIUS_CIRCLE, 0);
@@ -268,3 +268,268 @@ class KegTile : public tessera::Tile {
   }
 
   void on_tap() override {
+    tessera::open_card(plugin_->plugin_id(), "actions", action_entity_, tile_,
+                       plugin_->text(keg2_ ? "keg_2_actions" : "keg_1_actions"));
+  }
+
+  void on_theme() override {
+    apply_state_colors();
+  }
+
+ private:
+  void update_volume_fill(float volume) {
+    const float capacity = capacity_ == nullptr ? NAN : capacity_->state;
+    const float fraction = !empty_ && std::isfinite(volume) && std::isfinite(capacity) && capacity > 0.0f
+                            ? std::clamp(volume / capacity, 0.0f, 1.0f)
+                            : 0.0f;
+    const int fill_height = static_cast<int>(std::lround(height_ * fraction));
+    const int fill_top = height_ - fill_height;
+    const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(4), fill_height / 3) : 0;
+    const int foam_height = ui::px(4);
+
+    for (size_t i = 0; i < fill_count_; ++i) {
+      const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
+      const int x_end = static_cast<int>((i + 1) * static_cast<size_t>(width_) / fill_count_);
+      int wave_offset = 0;
+      if (amplitude > 0) {
+        const float phase = static_cast<float>(i) * TWO_PI / static_cast<float>(fill_count_);
+        wave_offset = static_cast<int>(std::lround(amplitude * std::sin(phase)));
+      }
+      const int top = std::clamp(fill_top + wave_offset, 0, std::max(0, height_ - 1));
+      const int segment_height = height_ - top;
+      
+      // Amber liquid body
+      set_hidden(fill_segments_[i], segment_height <= 0);
+      if (segment_height > 0) {
+        lv_obj_set_pos(fill_segments_[i], x_start, top);
+        lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
+      }
+
+      // White beer foam head right along the wave top
+      set_hidden(foam_segments_[i], segment_height <= 0 || fraction >= 0.99f);
+      if (segment_height > 0 && fraction < 0.99f) {
+        lv_obj_set_pos(foam_segments_[i], x_start, std::max(0, top - foam_height));
+        lv_obj_set_size(foam_segments_[i], x_end - x_start + 1, foam_height);
+      }
+    }
+
+    // Position carbonation bubbles inside the liquid area
+    for (size_t i = 0; i < MAX_BUBBLES; ++i) {
+      bool show_bubble = !empty_ && fraction > 0.1f;
+      set_hidden(bubbles_[i], !show_bubble);
+      if (show_bubble) {
+        // Distribute bubbles pseudo-randomly based on index and fill level
+        int bx = width_ * (2 + (i * 3) % 7) / 10;
+        int by = height_ - (fill_height * (1 + (i * 2) % 7) / 8);
+        lv_obj_set_pos(bubbles_[i], bx, by);
+      }
+    }
+  }
+
+  static void set_hidden(lv_obj_t *obj, bool hidden) {
+    const bool is_hidden = lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    if (hidden && !is_hidden) lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    if (!hidden && is_hidden) lv_obj_remove_flag(obj, LV_OBJ_FLAG_HIDDEN);
+  }
+
+  void apply_state_colors() {
+    const theme::Role surface_role = !empty_ && pouring_ ? theme::ACCENT_TINT : theme::CARD;
+    const theme::Role primary_text = empty_ ? theme::MUTED : theme::INK;
+    const theme::Role secondary_text = empty_ ? theme::SUBTLE : theme::INK_SOFT;
+    const theme::Role icon_color = empty_ ? theme::MUTED : pouring_ ? theme::ON_ACCENT : theme::ACCENT;
+    lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
+    for (size_t i = 0; i < fill_count_; ++i) {
+      lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
+    }
+    lv_obj_set_style_text_color(icon_label_, theme::color(icon_color), 0);
+    ui::set_color(title_, empty_ ? theme::SUBTLE : theme::MUTED);
+    ui::set_color(glasses_label_, primary_text);
+    ui::set_color(unit_label_, secondary_text);
+    ui::set_color(volume_label_, secondary_text);
+    ui::set_color(flow_label_, empty_ ? theme::SUBTLE
+                                      : pouring_ ? theme::ACCENT
+                                                 : low_stock_ ? theme::MARK_AMBER : theme::MUTED);
+  }
+
+  const KegTap *plugin_;
+  bool keg2_;
+  bool wide_ = false;
+  bool tall_ = false;
+  bool pouring_ = false;
+  bool low_stock_ = false;
+  bool empty_ = false;
+  sensor::Sensor *volume_;
+  text_sensor::TextSensor *label_;
+  number::Number *capacity_;
+  sensor::Sensor *glasses_;
+  binary_sensor::BinarySensor *flow_;
+  std::string action_entity_;
+  int tile_ = -1;
+  int width_ = 0;
+  int height_ = 0;
+  size_t fill_count_ = 0;
+  std::array<lv_obj_t *, MAX_FILL_SEGMENTS> fill_segments_{};
+  std::array<lv_obj_t *, MAX_FILL_SEGMENTS> foam_segments_{};
+  std::array<lv_obj_t *, MAX_BUBBLES> bubbles_{};
+  lv_obj_t *surface_{};
+  lv_obj_t *icon_label_{};
+  lv_obj_t *title_{};
+  lv_obj_t *volume_label_{};
+  lv_obj_t *glasses_label_{};
+  lv_obj_t *unit_label_{};
+  lv_obj_t *flow_label_{};
+};
+
+class KegActionsCard : public tessera::Card {
+ public:
+  explicit KegActionsCard(const KegTap *plugin) : plugin_(plugin) {}
+
+  void open(const tessera::CardContext &context) override {
+    entity_ = context.entity;
+    current_.clear();
+
+    const int margin = ui::px(16);
+    const int inset = ui::px(6);
+    const int gap = ui::px(4);
+    const int option_count = static_cast<int>(OPTION_COUNT);
+    const int row_gaps_height = (option_count - 1) * gap;
+    const int available_height = std::max(ui::px(1), context.height - margin * 2);
+    const int row_height = std::max(
+        ui::px(1), std::min(ui::px(48), (available_height - inset * 2 - row_gaps_height) / option_count));
+    const int panel_width = std::max(ui::px(1), std::min(context.width - margin * 2, ui::px(440)));
+    const int panel_height = inset * 2 + option_count * row_height + row_gaps_height;
+    const int panel_x = (context.width - panel_width) / 2;
+    const int panel_y = std::max(ui::px(8), (context.height - panel_height) / 2);
+
+    panel_ = ui::block(context.parent, theme::CARD);
+    lv_obj_set_size(panel_, panel_width, panel_height);
+    lv_obj_set_pos(panel_, panel_x, panel_y);
+    lv_obj_set_style_radius(panel_, ui::px(14), 0);
+
+    for (size_t i = 0; i < OPTION_COUNT; ++i) {
+      lv_obj_t *row = ui::block(panel_, theme::CARD);
+      lv_obj_set_size(row, panel_width - inset * 2, row_height);
+      lv_obj_set_pos(row, inset, inset + static_cast<int>(i) * (row_height + gap));
+      lv_obj_set_style_radius(row, ui::px(8), 0);
+      lv_obj_add_flag(row, LV_OBJ_FLAG_CLICKABLE);
+
+      lv_obj_t *label = ui::label(row, Font::BODY_LARGE, theme::INK);
+      ui::set_text(label, plugin_->text(OPTIONS[i].label));
+      const int label_height = ui::line_height(Font::BODY_LARGE);
+      const int side = ui::px(12);
+      lv_obj_set_size(label, panel_width - inset * 2 - side * 2, label_height);
+      lv_obj_set_pos(label, side, (row_height - label_height) / 2);
+      lv_obj_remove_flag(label, LV_OBJ_FLAG_CLICKABLE);
+
+      lv_obj_t *check = ui::label(row, Font::ICON_SMALL, theme::ACCENT);
+      ui::set_text(check, ui::icon(CHECK_ICON));
+      const int check_width = ui::text_width(ui::icon(CHECK_ICON), Font::ICON_SMALL);
+      const int check_height = ui::line_height(Font::ICON_SMALL);
+      lv_obj_set_size(check, check_width, check_height);
+      lv_obj_set_pos(check, panel_width - inset * 2 - side - check_width, (row_height - check_height) / 2);
+      lv_obj_remove_flag(check, LV_OBJ_FLAG_CLICKABLE);
+
+      rows_[i] = row;
+      checks_[i] = check;
+      row_contexts_[i] = {this, i};
+      lv_obj_add_event_cb(
+          row,
+          [](lv_event_t *event) {
+            auto *row_context = static_cast<RowContext *>(lv_event_get_user_data(event));
+            row_context->card->choose(row_context->index);
+          },
+          LV_EVENT_SHORT_CLICKED, &row_contexts_[i]);
+    }
+    paint_rows();
+  }
+
+  void on_theme() override {
+    paint_rows();
+  }
+
+ private:
+  struct ActionOption {
+    const char *value;
+    const char *label;
+  };
+  struct RowContext {
+    KegActionsCard *card;
+    size_t index;
+  };
+
+  static constexpr size_t OPTION_COUNT = 5;
+  static constexpr ActionOption OPTIONS[OPTION_COUNT] = {
+      {"Idle", "action_idle"},
+      {"Zero Scale", "action_zero_scale"},
+      {"Calibrate", "action_calibrate"},
+      {"Set Empty Keg", "action_set_empty_keg"},
+      {"Reset to Defaults", "action_reset_defaults"},
+  };
+
+  void choose(size_t index) {
+    if (index >= OPTION_COUNT) return;
+    if (!tessera::action("select.select_option", entity_, "option", OPTIONS[index].value)) {
+      ESP_LOGE(TAG, "Could not send select.select_option to %s with option %s", entity_.c_str(),
+               OPTIONS[index].value);
+      return;
+    }
+    ESP_LOGI(TAG, "Requested select.select_option for %s with option %s", entity_.c_str(), OPTIONS[index].value);
+    current_ = OPTIONS[index].value;
+    paint_rows();
+  }
+
+  void paint_rows() {
+    lv_obj_set_style_bg_color(panel_, ui::color(theme::CARD), 0);
+    for (size_t i = 0; i < OPTION_COUNT; ++i) {
+      const bool selected = current_ == OPTIONS[i].value;
+      lv_obj_set_style_bg_opa(rows_[i], selected ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
+      lv_obj_set_style_bg_color(rows_[i], ui::color(selected ? theme::ACCENT_TINT : theme::CARD), 0);
+      ui::set_color(checks_[i], selected ? theme::ACCENT : theme::CARD);
+      set_hidden(checks_[i], !selected);
+    }
+  }
+
+  static void set_hidden(lv_obj_t *obj, bool hidden) {
+    const bool is_hidden = lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    if (hidden && !is_hidden) lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    if (!hidden && is_hidden) lv_obj_remove_flag(obj, LV_OBJ_FLAG_HIDDEN);
+  }
+
+  const KegTap *plugin_;
+  std::string entity_;
+  std::string current_ = "Idle";
+  lv_obj_t *panel_{};
+  std::array<lv_obj_t *, OPTION_COUNT> rows_{};
+  std::array<lv_obj_t *, OPTION_COUNT> checks_{};
+  std::array<RowContext, OPTION_COUNT> row_contexts_{};
+};
+
+constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::Option_COUNT];
+
+void KegTap::setup() {
+  add_tile("keg1", [this]() { return new KegTile(this, false); });
+  add_tile("keg2", [this]() { return new KegTile(this, true); });
+  add_card("actions", [this]() { return new KegActionsCard(this); });
+}
+
+bool KegTap::settings(tessera::SettingsPage &page) {
+  page.number(text("setting_keg1_full_capacity"), 2, 50, 1, " L",
+              [this]() { return full_capacity_liters(false); },
+              [this](int value) { set_full_capacity_liters(false, value); });
+  page.number(text("setting_keg2_full_capacity"), 2, 50, 1, " L",
+              [this]() { return full_capacity_liters(true); },
+              [this](int value) { set_full_capacity_liters(true, value); });
+  return true;
+}
+
+void KegTap::set_full_capacity_liters(bool keg2, int value) {
+  number::Number *capacity_number = capacity(keg2);
+  if (capacity_number == nullptr) {
+    ESP_LOGE(TAG, "Cannot set Keg %u capacity: number entity is not configured", keg2 ? 2 : 1);
+    return;
+  }
+  capacity_number->make_call().set_value(static_cast<float>(std::clamp(value, 2, 50))).perform();
+}
+
+}  // namespace esphome::keg_tap
