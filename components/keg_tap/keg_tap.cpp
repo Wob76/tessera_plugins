@@ -42,6 +42,7 @@ class KegTile : public tessera::Tile {
     action_entity_ = action_entity;
 
     surface_ = lv_obj_get_parent(context.parent);
+    lv_obj_set_style_clip_corner(surface_, true, 0);
 
     const int segment_count =
         std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
@@ -258,7 +259,6 @@ class KegTile : public tessera::Tile {
     const int fill_height = static_cast<int>(std::lround(height_ * fraction));
     const int fill_top = height_ - fill_height;
     const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(3), fill_height / 2) : 0;
-    const int corner_radius = ui::px(12);
 
     for (size_t i = 0; i < fill_count_; ++i) {
       const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
@@ -274,19 +274,7 @@ class KegTile : public tessera::Tile {
       set_hidden(fill_segments_[i], segment_height <= 0);
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
-        lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
-
-        // Apply rounded bottom-left to the first segment and bottom-right to the last segment
-        lv_Coord rad_tl = 0, rad_tr = 0, rad_bl = 0, rad_br = 0;
-        if (i == 0 && top + segment_height >= height_ - 2) {
-          rad_bl = corner_radius;
-        }
-        if (i == fill_count_ - 1 && top + segment_height >= height_ - 2) {
-          rad_br = corner_radius;
-        }
-        
-        lv_obj_set_style_radius(fill_segments_[i], rad_bl, LV_PART_MAIN | LV_STATE_DEFAULT);
-        // Alternatively, use LVGL's corner flags if supported, or apply clean corner radii to the outer bounds:
+        lv_obj_set_size(fill_segments_[i], x_end - x_start, segment_height);
       }
     }
   }
