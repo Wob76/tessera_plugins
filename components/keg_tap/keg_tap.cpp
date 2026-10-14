@@ -58,7 +58,6 @@ class KegTile : public tessera::Tile {
         std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
     fill_count_ = static_cast<size_t>(segment_count);
     for (size_t i = 0; i < fill_count_; ++i) {
-      // Attach fill segments inside the dedicated clipped container instead of context.parent directly
       fill_segments_[i] = lv_obj_create(fill_container_);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
