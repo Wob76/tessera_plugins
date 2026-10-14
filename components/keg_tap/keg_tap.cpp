@@ -286,6 +286,7 @@ class KegTile : public tessera::Tile {
     const int fill_top = height_ - fill_height;
     const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(4), fill_height / 3) : 0;
     const int foam_height = ui::px(4);
+    const int corner_radius = ui::px(12);
 
     for (size_t i = 0; i < fill_count_; ++i) {
       const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
@@ -303,6 +304,15 @@ class KegTile : public tessera::Tile {
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
         lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
+
+        // Apply clean bottom rounding to the outermost bottom segments to match card corners
+        if (i == 0) {
+          lv_obj_set_style_radius(fill_segments_[i], corner_radius, 0);
+        } else if (i == fill_count_ - 1) {
+          lv_obj_set_style_radius(fill_segments_[i], corner_radius, 0);
+        } else {
+          lv_obj_set_style_radius(fill_segments_[i], 0, 0);
+        }
       }
 
       // White beer foam head right along the wave top
