@@ -66,7 +66,7 @@ class KegTile : public tessera::Tile {
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
       lv_obj_set_style_bg_color(foam_segments_[i], lv_color_white(), 0);
-      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_COVER, 0);
+      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_30, 0);
       lv_obj_set_style_border_width(foam_segments_[i], 0, 0);
       lv_obj_set_style_radius(foam_segments_[i], ui::px(2), 0);
       lv_obj_add_flag(foam_segments_[i], LV_OBJ_FLAG_HIDDEN);
@@ -318,7 +318,6 @@ class KegTile : public tessera::Tile {
       bool show_bubble = !empty_ && fraction > 0.1f;
       set_hidden(bubbles_[i], !show_bubble);
       if (show_bubble) {
-        // Distribute bubbles pseudo-randomly based on index and fill level
         int bx = width_ * (2 + (i * 3) % 7) / 10;
         int by = height_ - (fill_height * (1 + (i * 2) % 7) / 8);
         lv_obj_set_pos(bubbles_[i], bx, by);
@@ -341,6 +340,10 @@ class KegTile : public tessera::Tile {
     lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
     for (size_t i = 0; i < fill_count_; ++i) {
       lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
+      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_white(), 0);
+    }
+    for (size_t i = 0; i < MAX_BUBBLES; ++i) {
+      lv_obj_set_style_bg_color(bubbles_[i], lv_color_white(), 0);
     }
     lv_obj_set_style_text_color(icon_label_, theme::color(icon_color), 0);
     ui::set_color(title_, empty_ ? theme::SUBTLE : theme::MUTED);
@@ -505,7 +508,7 @@ class KegActionsCard : public tessera::Card {
   std::array<RowContext, OPTION_COUNT> row_contexts_{};
 };
 
-constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::Option_COUNT];
+constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::OPTION_COUNT];
 
 void KegTap::setup() {
   add_tile("keg1", [this]() { return new KegTile(this, false); });
