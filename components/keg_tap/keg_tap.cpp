@@ -56,7 +56,7 @@ class KegTile : public tessera::Tile {
       lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
       lv_obj_set_style_bg_opa(fill_segments_[i], LV_OPA_COVER, 0);
       lv_obj_set_style_border_width(fill_segments_[i], 0, 0);
-      lv_obj_set_style_radius(fill_segments_[i], 0, 0);
+      lv_obj_set_style_radius(fill_segments_[i], ui::px(12), 0);
       lv_obj_add_flag(fill_segments_[i], LV_OBJ_FLAG_HIDDEN);
     }
 
