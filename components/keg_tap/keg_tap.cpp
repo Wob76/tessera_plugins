@@ -536,4 +536,4 @@ void KegTap::set_full_capacity_liters(bool keg2, int value) {
   capacity_number->make_call().set_value(static_cast<float>(std::clamp(value, 2, 50))).perform();
 }
 
-}  -- namespace esphome::keg_tap
+}  // namespace esphome::keg_tap
