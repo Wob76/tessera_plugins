@@ -47,22 +47,36 @@ class KegTile : public tessera::Tile {
     const int segment_count =
         std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
     fill_count_ = static_cast<size_t>(segment_count);
-    
+
+    // Rounded clipping container for the beer fill. Everything inside it (amber body,
+    // foam, bubbles) is clipped to the rounded corners, so the strips can stay square.
+    // Created before the labels so the text stays on top.
+    fill_clip_ = lv_obj_create(context.parent);
+    lv_obj_remove_flag(fill_clip_, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(fill_clip_, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_size(fill_clip_, width_, height_);
+    lv_obj_set_pos(fill_clip_, 0, 0);
+    lv_obj_set_style_bg_opa(fill_clip_, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(fill_clip_, 0, 0);
+    lv_obj_set_style_pad_all(fill_clip_, 0, 0);
+    lv_obj_set_style_radius(fill_clip_, ui::px(12), 0);  // match the card's corner radius
+    lv_obj_set_style_clip_corner(fill_clip_, true, 0);
+
     // Create amber body segments (flat bottom, wavy top)
     for (size_t i = 0; i < fill_count_; ++i) {
-      fill_segments_[i] = lv_obj_create(context.parent);
+      fill_segments_[i] = lv_obj_create(fill_clip_);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
       lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
       lv_obj_set_style_bg_opa(fill_segments_[i], LV_OPA_COVER, 0);
       lv_obj_set_style_border_width(fill_segments_[i], 0, 0);
-      lv_obj_set_style_radius(fill_segments_[i], ui::px(12), 0);
+      lv_obj_set_style_radius(fill_segments_[i], 0, 0);
       lv_obj_add_flag(fill_segments_[i], LV_OBJ_FLAG_HIDDEN);
     }
 
     // Create white foam head segments that sit right along the wave peaks
     for (size_t i = 0; i < fill_count_; ++i) {
-      foam_segments_[i] = lv_obj_create(context.parent);
+      foam_segments_[i] = lv_obj_create(fill_clip_);
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
       lv_obj_set_style_bg_color(foam_segments_[i], lv_color_white(), 0);
@@ -74,7 +88,7 @@ class KegTile : public tessera::Tile {
 
     // Create subtle carbonation bubbles inside the beer
     for (size_t i = 0; i < MAX_BUBBLES; ++i) {
-      bubbles_[i] = lv_obj_create(context.parent);
+      bubbles_[i] = lv_obj_create(fill_clip_);
       lv_obj_remove_flag(bubbles_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(bubbles_[i], LV_OBJ_FLAG_SCROLLABLE);
       lv_obj_set_style_bg_color(bubbles_[i], lv_color_white(), 0);
@@ -286,7 +300,6 @@ class KegTile : public tessera::Tile {
     const int fill_top = height_ - fill_height;
     const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(4), fill_height / 3) : 0;
     const int foam_height = ui::px(4);
-    const int corner_radius = ui::px(12);
 
     for (size_t i = 0; i < fill_count_; ++i) {
       const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
@@ -298,21 +311,12 @@ class KegTile : public tessera::Tile {
       }
       const int top = std::clamp(fill_top + wave_offset, 0, std::max(0, height_ - 1));
       const int segment_height = height_ - top;
-      
-      // Amber liquid body
+
+      // Amber liquid body (square strips; the clip container rounds the corners)
       set_hidden(fill_segments_[i], segment_height <= 0);
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
         lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
-
-        // Apply clean bottom rounding to the outermost bottom segments to match card corners
-        if (i == 0) {
-          lv_obj_set_style_radius(fill_segments_[i], corner_radius, 0);
-        } else if (i == fill_count_ - 1) {
-          lv_obj_set_style_radius(fill_segments_[i], corner_radius, 0);
-        } else {
-          lv_obj_set_style_radius(fill_segments_[i], 0, 0);
-        }
       }
 
       // White beer foam head right along the wave top
@@ -386,6 +390,7 @@ class KegTile : public tessera::Tile {
   std::array<lv_obj_t *, MAX_FILL_SEGMENTS> foam_segments_{};
   std::array<lv_obj_t *, MAX_BUBBLES> bubbles_{};
   lv_obj_t *surface_{};
+  lv_obj_t *fill_clip_{};
   lv_obj_t *icon_label_{};
   lv_obj_t *title_{};
   lv_obj_t *volume_label_{};
