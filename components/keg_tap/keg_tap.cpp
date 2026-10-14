@@ -43,22 +43,11 @@ class KegTile : public tessera::Tile {
 
     surface_ = lv_obj_get_parent(context.parent);
 
-    // Create a dedicated clipped container for the fill layer that matches the card's boundary & radius
-    fill_container_ = lv_obj_create(context.parent);
-    lv_obj_remove_flag(fill_container_, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_remove_flag(fill_container_, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_pos(fill_container_, 0, 0);
-    lv_obj_set_size(fill_container_, width_, height_);
-    lv_obj_set_style_bg_opa(fill_container_, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_border_width(fill_container_, 0, 0);
-    lv_obj_set_style_radius(fill_container_, ui::px(14), 0);
-    lv_obj_set_style_clip_corner(fill_container_, true, 0);
-
     const int segment_count =
         std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
     fill_count_ = static_cast<size_t>(segment_count);
     for (size_t i = 0; i < fill_count_; ++i) {
-      fill_segments_[i] = lv_obj_create(fill_container_);
+      fill_segments_[i] = lv_obj_create(context.parent);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE);
       lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
       lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
@@ -269,6 +258,7 @@ class KegTile : public tessera::Tile {
     const int fill_height = static_cast<int>(std::lround(height_ * fraction));
     const int fill_top = height_ - fill_height;
     const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(3), fill_height / 2) : 0;
+    const int corner_radius = ui::px(12);
 
     for (size_t i = 0; i < fill_count_; ++i) {
       const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
@@ -285,6 +275,18 @@ class KegTile : public tessera::Tile {
       if (segment_height > 0) {
         lv_obj_set_pos(fill_segments_[i], x_start, top);
         lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
+
+        // Apply rounded bottom-left to the first segment and bottom-right to the last segment
+        lv_Coord rad_tl = 0, rad_tr = 0, rad_bl = 0, rad_br = 0;
+        if (i == 0 && top + segment_height >= height_ - 2) {
+          rad_bl = corner_radius;
+        }
+        if (i == fill_count_ - 1 && top + segment_height >= height_ - 2) {
+          rad_br = corner_radius;
+        }
+        
+        lv_obj_set_style_radius(fill_segments_[i], rad_bl, LV_PART_MAIN | LV_STATE_DEFAULT);
+        // Alternatively, use LVGL's corner flags if supported, or apply clean corner radii to the outer bounds:
       }
     }
   }
@@ -334,7 +336,6 @@ class KegTile : public tessera::Tile {
   size_t fill_count_ = 0;
   std::array<lv_obj_t *, MAX_FILL_SEGMENTS> fill_segments_{};
   lv_obj_t *surface_{};
-  lv_obj_t *fill_container_{};
   lv_obj_t *icon_label_{};
   lv_obj_t *title_{};
   lv_obj_t *volume_label_{};
