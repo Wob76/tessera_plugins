@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.19
+
+- Make the fill more beer like
+
 ## 0.4.17
 
 - Fix Rounding on Amber Fill

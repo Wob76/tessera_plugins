@@ -16,6 +16,9 @@ namespace ui = tessera::ui;
 
 constexpr uint32_t FRIDGE_ICON = 0xF0290;
 constexpr uint32_t CHECK_ICON = 0xF012C;
+constexpr size_t MAX_FILL_SEGMENTS = 24;
+constexpr size_t MAX_BUBBLES = 6;
+constexpr float TWO_PI = 6.2831853071795864769f;
 
 class KegTile : public tessera::Tile {
  public:
@@ -41,16 +44,46 @@ class KegTile : public tessera::Tile {
 
     surface_ = lv_obj_get_parent(context.parent);
 
-    // Single unified fill bar instead of broken segmented strips
-    fill_bar_ = lv_obj_create(context.parent);
-    lv_obj_remove_flag(fill_bar_, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_remove_flag(fill_bar_, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(fill_bar_, theme::color(theme::AMBER_TRACK), 0);
-    lv_obj_set_style_bg_opa(fill_bar_, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_width(fill_bar_, 0, 0);
-    // Give the bottom corners a nice radius to match the card curve
-    lv_obj_set_style_radius(fill_bar_, ui::px(12), 0);
-    lv_obj_add_flag(fill_bar_, LV_OBJ_FLAG_HIDDEN);
+    const int segment_count =
+        std::clamp(width_ / std::max(1, ui::px(4)), 12, static_cast<int>(MAX_FILL_SEGMENTS));
+    fill_count_ = static_cast<size_t>(segment_count);
+    
+    // Create amber body segments (flat bottom, wavy top)
+    for (size_t i = 0; i < fill_count_; ++i) {
+      fill_segments_[i] = lv_obj_create(context.parent);
+      lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_CLICKABLE);
+      lv_obj_remove_flag(fill_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
+      lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
+      lv_obj_set_style_bg_opa(fill_segments_[i], LV_OPA_COVER, 0);
+      lv_obj_set_style_border_width(fill_segments_[i], 0, 0);
+      lv_obj_set_style_radius(fill_segments_[i], 0, 0);
+      lv_obj_add_flag(fill_segments_[i], LV_OBJ_FLAG_HIDDEN);
+    }
+
+    // Create white foam head segments that sit right along the wave peaks
+    for (size_t i = 0; i < fill_count_; ++i) {
+      foam_segments_[i] = lv_obj_create(context.parent);
+      lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_CLICKABLE);
+      lv_obj_remove_flag(foam_segments_[i], LV_OBJ_FLAG_SCROLLABLE);
+      lv_obj_set_style_bg_color(foam_segments_[i], lv_color_white(), 0);
+      lv_obj_set_style_bg_opa(foam_segments_[i], LV_OPA_COVER, 0);
+      lv_obj_set_style_border_width(foam_segments_[i], 0, 0);
+      lv_obj_set_style_radius(foam_segments_[i], ui::px(2), 0);
+      lv_obj_add_flag(foam_segments_[i], LV_OBJ_FLAG_HIDDEN);
+    }
+
+    // Create subtle carbonation bubbles inside the beer
+    for (size_t i = 0; i < MAX_BUBBLES; ++i) {
+      bubbles_[i] = lv_obj_create(context.parent);
+      lv_obj_remove_flag(bubbles_[i], LV_OBJ_FLAG_CLICKABLE);
+      lv_obj_remove_flag(bubbles_[i], LV_OBJ_FLAG_SCROLLABLE);
+      lv_obj_set_style_bg_color(bubbles_[i], lv_color_white(), 0);
+      lv_obj_set_style_bg_opa(bubbles_[i], LV_OPA_30, 0);
+      lv_obj_set_style_border_width(bubbles_[i], 0, 0);
+      lv_obj_set_style_radius(bubbles_[i], LV_RADIUS_CIRCLE, 0);
+      lv_obj_set_size(bubbles_[i], ui::px(3), ui::px(3));
+      lv_obj_add_flag(bubbles_[i], LV_OBJ_FLAG_HIDDEN);
+    }
 
     title_ = ui::label(context.parent, Font::BODY, theme::MUTED);
     icon_label_ = ui::label(context.parent, Font::ICON, theme::ACCENT);
@@ -250,13 +283,46 @@ class KegTile : public tessera::Tile {
                             ? std::clamp(volume / capacity, 0.0f, 1.0f)
                             : 0.0f;
     const int fill_height = static_cast<int>(std::lround(height_ * fraction));
-    
-    set_hidden(fill_bar_, fill_height <= 0);
-    if (fill_height > 0) {
-      lv_obj_set_pos(fill_bar_, 0, height_ - fill_height);
-      lv_obj_set_size(fill_bar_, width_, fill_height);
-      // Ensure the fill bar sits behind the text labels so they remain readable
-      lv_obj_move_background(fill_bar_);
+    const int fill_top = height_ - fill_height;
+    const int amplitude = fraction > 0.0f && fraction < 1.0f ? std::min(ui::px(4), fill_height / 3) : 0;
+    const int foam_height = ui::px(4);
+
+    for (size_t i = 0; i < fill_count_; ++i) {
+      const int x_start = static_cast<int>(i * static_cast<size_t>(width_) / fill_count_);
+      const int x_end = static_cast<int>((i + 1) * static_cast<size_t>(width_) / fill_count_);
+      int wave_offset = 0;
+      if (amplitude > 0) {
+        const float phase = static_cast<float>(i) * TWO_PI / static_cast<float>(fill_count_);
+        wave_offset = static_cast<int>(std::lround(amplitude * std::sin(phase)));
+      }
+      const int top = std::clamp(fill_top + wave_offset, 0, std::max(0, height_ - 1));
+      const int segment_height = height_ - top;
+      
+      // Amber liquid body
+      set_hidden(fill_segments_[i], segment_height <= 0);
+      if (segment_height > 0) {
+        lv_obj_set_pos(fill_segments_[i], x_start, top);
+        lv_obj_set_size(fill_segments_[i], x_end - x_start + 1, segment_height);
+      }
+
+      // White beer foam head right along the wave top
+      set_hidden(foam_segments_[i], segment_height <= 0 || fraction >= 0.99f);
+      if (segment_height > 0 && fraction < 0.99f) {
+        lv_obj_set_pos(foam_segments_[i], x_start, std::max(0, top - foam_height));
+        lv_obj_set_size(foam_segments_[i], x_end - x_start + 1, foam_height);
+      }
+    }
+
+    // Position carbonation bubbles inside the liquid area
+    for (size_t i = 0; i < MAX_BUBBLES; ++i) {
+      bool show_bubble = !empty_ && fraction > 0.1f;
+      set_hidden(bubbles_[i], !show_bubble);
+      if (show_bubble) {
+        // Distribute bubbles pseudo-randomly based on index and fill level
+        int bx = width_ * (2 + (i * 3) % 7) / 10;
+        int by = height_ - (fill_height * (1 + (i * 2) % 7) / 8);
+        lv_obj_set_pos(bubbles_[i], bx, by);
+      }
     }
   }
 
@@ -273,7 +339,9 @@ class KegTile : public tessera::Tile {
     const theme::Role icon_color = empty_ ? theme::MUTED : pouring_ ? theme::ON_ACCENT : theme::ACCENT;
     lv_obj_set_style_bg_opa(surface_, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(surface_, theme::color(surface_role), 0);
-    lv_obj_set_style_bg_color(fill_bar_, theme::color(theme::AMBER_TRACK), 0);
+    for (size_t i = 0; i < fill_count_; ++i) {
+      lv_obj_set_style_bg_color(fill_segments_[i], theme::color(theme::AMBER_TRACK), 0);
+    }
     lv_obj_set_style_text_color(icon_label_, theme::color(icon_color), 0);
     ui::set_color(title_, empty_ ? theme::SUBTLE : theme::MUTED);
     ui::set_color(glasses_label_, primary_text);
@@ -300,8 +368,11 @@ class KegTile : public tessera::Tile {
   int tile_ = -1;
   int width_ = 0;
   int height_ = 0;
+  size_t fill_count_ = 0;
+  std::array<lv_obj_t *, MAX_FILL_SEGMENTS> fill_segments_{};
+  std::array<lv_obj_t *, MAX_FILL_SEGMENTS> foam_segments_{};
+  std::array<lv_obj_t *, MAX_BUBBLES> bubbles_{};
   lv_obj_t *surface_{};
-  lv_obj_t *fill_bar_{};
   lv_obj_t *icon_label_{};
   lv_obj_t *title_{};
   lv_obj_t *volume_label_{};
@@ -434,7 +505,7 @@ class KegActionsCard : public tessera::Card {
   std::array<RowContext, OPTION_COUNT> row_contexts_{};
 };
 
-constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::OPTION_COUNT];
+constexpr KegActionsCard::ActionOption KegActionsCard::OPTIONS[KegActionsCard::Option_COUNT];
 
 void KegTap::setup() {
   add_tile("keg1", [this]() { return new KegTile(this, false); });
