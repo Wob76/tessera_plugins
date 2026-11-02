@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.22
+
+- Send keg select actions using the Tessera plugin API's JSON fields argument.
+
 ## 0.4.19
 
 - Make the fill more beer like

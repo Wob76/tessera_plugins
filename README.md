@@ -18,7 +18,7 @@ large, centered Empty status.
 
 ## What you need
 
-- A Tessera screen running Manager 0.4.87 or newer (plugin API 0.8).
+- A Tessera screen whose core supports plugin API 0.12 or newer (Manager 0.4.93 provides API 0.24).
 - Home Assistant sensors for each keg's remaining volume, remaining glasses, and pour rate, a binary flow sensor,
   and a text label entity (`text.keg_scales_keg_1_scale_label` / `text.keg_scales_keg_2_scale_label` by default).
 - The Home Assistant Keg Actions select entities.
@@ -63,7 +63,7 @@ entities in the screen inputs if your Home Assistant IDs differ.
 ## Development
 
 This folder is structured as a standalone Tessera plugin repository. Run Tessera's
-`tools/check.py` and `tools/preview.py` against this folder before publishing. API 0.8 is intentional for the
-Manager version listed above. The Manager's plugin preview displays the metadata example text in a generic tile
-layout; it does not render this ESPHome/LVGL implementation, so its geometry and state colors can differ from the
+`tools/check.py` and `tools/preview.py` against this folder before publishing. API 0.12 is required for sending
+Home Assistant actions with JSON fields. The Manager's plugin preview displays the metadata example text in a generic
+tile layout; it does not render this ESPHome/LVGL implementation, so its geometry and state colors can differ from the
 screen. Verify the final appearance on the device.

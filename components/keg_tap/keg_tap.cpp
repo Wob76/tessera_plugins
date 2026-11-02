@@ -497,7 +497,9 @@ class KegActionsCard : public tessera::Card {
 
   void choose(size_t index) {
     if (index >= OPTION_COUNT) return;
-    if (!tessera::action("select.select_option", entity_, "option", OPTIONS[index].value)) {
+    JsonDocument fields;
+    fields["option"] = OPTIONS[index].value;
+    if (!tessera::action("select.select_option", entity_, fields)) {
       ESP_LOGE(TAG, "Could not send select.select_option to %s with option %s", entity_.c_str(),
                OPTIONS[index].value);
       return;
